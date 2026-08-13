@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personalized Telegram Briefing — 지도 · 카드</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="mode-map">
+
+<!-- ===== 공용 상단 바 (지구본 보기와 동일한 형식) ===== -->
+<header class="app-top">
+  <div class="brand">
+    <span class="brand-dot" aria-hidden="true"></span>
+    <span class="brand-name">Personalized Telegram Briefing</span>
+  </div>
+
+  <div class="stats">
+    <span class="stat"><span class="stat-k">채널</span><span class="stat-v">7</span></span>
+    <span class="stat"><span class="stat-k">이슈</span><span class="stat-v" id="stat-issues">0</span></span>
+    <span class="stat"><span class="stat-k">정리</span><span class="stat-v" id="stat-snap">—</span></span>
+  </div>
+
+  <div class="tools">
+    <div class="seg" role="group" aria-label="보기 전환">
+      <a class="seg-btn" href="../index.html">지구본</a>
+      <button type="button" class="seg-btn is-on" data-mode="map">지도</button>
+      <button type="button" class="seg-btn" data-mode="toss">카드</button>
+    </div>
+    <button type="button" id="btn-refresh" class="tool-btn">
+      <span class="rf-icon" aria-hidden="true">&#8635;</span>
+      <span class="rf-label">새로고침</span>
+    </button>
+  </div>
+</header>
+
+<!-- 범례 — 상단 바 아랫줄 우측 -->
+<div class="legend" id="legend">
+  <span class="lg lg-event">사건</span>
+  <span class="lg lg-source">원문</span>
+  <span class="lg lg-term">개념 설명</span>
+  <span class="lg lg-opinion">AI 의견</span>
+</div>
+
+<!-- ===================================================================
+     레이아웃 A — 지도. 사건을 중심에 두고 원문·개념·의견이 가지로 뻗는다
+     =================================================================== -->
+<div id="view-map" class="view-map">
+  <div class="map-stage">
+    <svg id="links" class="links" aria-hidden="true"></svg>
+    <div id="graph" class="graph"></div>
+  </div>
+  <p class="map-hint">박스를 누르면 원문·설명이 열려요<span class="hint-mobile"> · 좁은 화면에서는 좌우로 밀어 보세요</span></p>
+</div>
+
+<!-- 상세 패널 -->
+<div id="panel" class="panel" hidden>
+  <div class="pn" role="dialog" aria-modal="true">
+    <button type="button" id="pn-close" class="pn-close" aria-label="닫기">&#10005;</button>
+    <p class="pn-tag"></p>
+    <h2 class="pn-title"></h2>
+    <div class="pn-metric">
+      <span class="pn-value"></span>
+      <span class="pn-sub"></span>
+    </div>
+    <div class="pn-body"></div>
+  </div>
+</div>
+
+<!-- 작은 팝업 (원문 · 개념 · 배경 · 의견) -->
+<div id="pop" class="pop" hidden>
+  <div class="pop-in" role="dialog" aria-modal="true">
+    <button type="button" id="pop-close" class="pn-close" aria-label="닫기">&#10005;</button>
+    <p class="pop-kind"></p>
+    <p class="pop-name"></p>
+    <div class="pop-body"></div>
+    <div class="pop-feed" hidden>
+      <span class="feed-q">이 설명이 도움이 됐나요?</span>
+      <div class="feed-btns">
+        <button type="button" class="feed-btn" data-vote="up">👍 도움됐어요</button>
+        <button type="button" class="feed-btn" data-vote="down">👎 필요 없어요</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================
+     레이아웃 B — 카드 (토스 톤)
+     =================================================================== -->
+<div id="view-toss" class="view-toss">
+  <div class="phone">
+    <header class="top">
+      <button type="button" id="btn-prev" class="icon-btn" aria-label="이전 카드">&#8249;</button>
+      <div class="progress">
+        <span id="progress-text">1 / 3</span>
+        <div class="bar"><div id="bar-fill" class="bar-fill"></div></div>
+      </div>
+      <button type="button" id="btn-reset" class="icon-btn" aria-label="피드백 초기화">&#8635;</button>
+    </header>
+
+    <main id="card-area" class="card-area" aria-live="polite"></main>
+
+    <footer class="bottom">
+      <button type="button" id="btn-next" class="primary">다음 카드</button>
+    </footer>
+  </div>
+</div>
+
+<!-- 새로고침 결과 -->
+<div id="rf" class="rf-back" hidden>
+  <article class="rf-panel">
+    <button type="button" id="rf-close" class="pn-close rf-close" aria-label="닫기">&#10005;</button>
+    <p class="rf-kicker">원문 새로고침</p>
+    <h2 class="rf-title">텔레그램에서 새 글을 확인해요</h2>
+    <p class="rf-note" id="rf-note"></p>
+    <div class="rf-warn">
+      <p><b>여기까지가 브라우저가 할 수 있는 일이에요.</b></p>
+      <p>새 원문은 가져올 수 있지만, 사실·개념·배경·의견 카드로 정리하는 건 이 앱 안에서 못 해요.
+         LLM 호출이 필요해서 서버가 있어야 합니다. 아래 목록은 <b>정리되지 않은 원문</b>이에요.</p>
+      <p class="rf-proxy">텔레그램은 브라우저의 직접 요청을 막아 두었어요(CORS).
+         그래서 <code>r.jina.ai</code> 중계 서비스를 거칩니다. 채널 주소가 그 서비스를 지나갑니다.
+         무료 중계라 <b>요청 한도(429)</b>가 있어서 짧은 시간에 여러 번 누르면 실패해요.</p>
+    </div>
+    <div id="rf-list" class="rf-list"></div>
+  </article>
+</div>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<!-- ===== 템플릿 ===== -->
+
+<template id="tpl-rf-row">
+  <div class="rf-row">
+    <div class="rf-row-top">
+      <span class="rf-ch"></span>
+      <span class="rf-new"></span>
+    </div>
+    <p class="rf-preview"></p>
+    <a class="rf-link" target="_blank" rel="noopener">채널 열기 &rarr;</a>
+  </div>
+</template>
+
+<template id="tpl-card">
+  <article class="card">
+    <p class="tag"></p>
+    <h1 class="title"></h1>
+    <div class="metric">
+      <span class="metric-value"></span>
+      <span class="metric-sub"></span>
+    </div>
+    <section class="block block-fact">
+      <h2 class="block-head"><span class="ico">&#128240;</span>사실</h2>
+      <ul class="facts"></ul>
+      <button type="button" class="link-btn btn-sources"></button>
+      <div class="sources" hidden></div>
+    </section>
+    <section class="block block-term">
+      <h2 class="block-head"><span class="ico">&#128161;</span>이 말이 무슨 뜻이냐면</h2>
+      <p class="ai-label">AI가 붙인 설명이에요. 실제 뉴스가 아니에요.</p>
+      <div class="terms"></div>
+      <p class="terms-empty" hidden>이 카드에 나온 용어는 모두 필요 없다고 하셨어요.</p>
+    </section>
+    <section class="block block-more">
+      <button type="button" class="more-toggle">
+        <span class="block-head"><span class="ico">&#128269;</span>알아두면 좋은 것</span>
+        <span class="chev">&#8964;</span>
+      </button>
+      <div class="more-body" hidden>
+        <p class="ai-label">AI가 붙인 설명이에요. 실제 뉴스가 아니에요.</p>
+        <ul class="notes"></ul>
+      </div>
+    </section>
+    <section class="block block-opinion">
+      <h2 class="block-head"><span class="ico">&#129504;</span>제 생각은</h2>
+      <p class="ai-label op-label">AI 의견이에요. 사실도 아니고 투자 판단도 아니에요.</p>
+      <p class="opinion"></p>
+    </section>
+  </article>
+</template>
+
+<template id="tpl-term">
+  <div class="term">
+    <p class="term-name"></p>
+    <p class="term-desc"></p>
+    <button type="button" class="know-btn">필요 없어요</button>
+  </div>
+</template>
+
+<template id="tpl-pn-body">
+  <div class="pn-secs">
+    <section class="pn-sec">
+      <h3 class="pn-head">사실</h3>
+      <ul class="pn-facts"></ul>
+      <p class="pn-src-head"></p>
+      <div class="pn-src"></div>
+    </section>
+    <section class="pn-sec pn-sec-ai">
+      <h3 class="pn-head">이 말이 무슨 뜻이냐면</h3>
+      <p class="pn-ai">AI가 붙인 설명 · 실제 뉴스가 아님</p>
+      <div class="pn-terms"></div>
+      <p class="pn-terms-empty" hidden>이 항목의 용어는 모두 필요 없다고 하셨어요.</p>
+    </section>
+    <section class="pn-sec pn-sec-ai">
+      <h3 class="pn-head">알아두면 좋은 것</h3>
+      <p class="pn-ai">AI가 붙인 설명 · 실제 뉴스가 아님</p>
+      <ul class="pn-notes"></ul>
+    </section>
+    <section class="pn-sec pn-sec-op">
+      <h3 class="pn-head">제 생각은</h3>
+      <p class="pn-ai">AI 의견 · 사실도 아니고 투자 판단도 아님</p>
+      <p class="pn-opinion"></p>
+    </section>
+  </div>
+</template>
+
+<template id="tpl-source">
+  <div class="src-item">
+    <button type="button" class="src-head">
+      <span class="src-ch"></span>
+      <span class="src-at"></span>
+      <span class="src-open">원문 보기</span>
+    </button>
+    <div class="src-raw" hidden>
+      <pre class="src-text"></pre>
+      <p class="src-trunc" hidden>원문이 길어 앞부분만 옮겼어요. 전문은 아래 링크에서 볼 수 있어요.</p>
+      <a class="src-link" target="_blank" rel="noopener">텔레그램에서 원문 열기 &rarr;</a>
+    </div>
+  </div>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# 참고 이미지 — 디자인 논의용으로 받은 제3자 저작물이라 저장소에 올리지 않는다.
+# globe.png (F1·Fox Sports 중계 캡처), globe-use.png (NASA 블루마블),
+# jarvis.jpg (아이언맨 테마), macbook.jpg (애플 제품 사진), ui_example.png (손그림 스케치)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+
+# 로컬 설정·비밀
+.env
+.env.*
+.claude/settings.local.json
+
+# OS·에디터
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/

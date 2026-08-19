@@ -23,6 +23,7 @@ test('schema and runtime validator expose the same core enums', () => {
   assert.equal(schema.$schema, 'https://json-schema.org/draft/2020-12/schema');
   assert.equal(validation.schemaVersion, '1.0.0');
   assert.deepEqual([...validation.regions], schema.properties.region.enum);
+  assert.ok(validation.regions.includes('eu'));
   assert.deepEqual([...validation.categories], schema.properties.cat.enum);
   assert.deepEqual([...validation.directions], schema.properties.metric.properties.dir.enum);
   assert.deepEqual(schema.required, ['title', 'metric', 'facts', 'sources', 'notes', 'opinion']);
@@ -42,7 +43,7 @@ test('generated-item contract rejects invalid enums, missing grounding, unsafe h
     'foo/1': { ch: 'foo', id: 1, at: '8/19 10:00', text: 'source' },
   };
   const bad = {
-    region: 'eu',
+    region: 'xx',
     cat: 'crypto',
     imp: 4,
     title: 'bad generated card',

@@ -43,7 +43,7 @@ test('shared storage migrates and mirrors feedback across nb and nb2 keys', () =
 
 test('data validator accepts a grounded, non-advisory briefing item', () => {
   const window = {};
-  const context = vm.createContext({ window, console, document: undefined, Object, Array, Number, String, RegExp });
+  const context = vm.createContext({ window, console, document: undefined, Object, Array, Number, String, RegExp, Set });
   vm.runInContext(read('data-validator.js'), context, { filename: 'data-validator.js' });
 
   const errors = window.BRIEFING_VALIDATION.validateDataset({
@@ -53,7 +53,7 @@ test('data validator accepts a grounded, non-advisory briefing item', () => {
     items: [{
       id: 'item-1',
       title: '테스트 이슈',
-      metric: { value: '+1.0%', sub: '테스트 지표' },
+      metric: { value: '+1.0%', dir: 'up', sub: '테스트 지표' },
       facts: ['원문에 있는 사실'],
       imp: 2,
       sources: ['foo/1'],
@@ -67,14 +67,14 @@ test('data validator accepts a grounded, non-advisory briefing item', () => {
 
 test('data validator catches missing sources and investment-judgement phrasing', () => {
   const window = {};
-  const context = vm.createContext({ window, console, document: undefined, Object, Array, Number, String, RegExp });
+  const context = vm.createContext({ window, console, document: undefined, Object, Array, Number, String, RegExp, Set });
   vm.runInContext(read('data-validator.js'), context, { filename: 'data-validator.js' });
 
   const errors = Array.from(window.BRIEFING_VALIDATION.validateDataset({
     sources: {},
     items: [{
       title: '잘못된 이슈',
-      metric: { value: '1', sub: 'x' },
+      metric: { value: '1', dir: 'flat', sub: 'x' },
       facts: ['사실'],
       imp: 4,
       sources: ['missing/99'],

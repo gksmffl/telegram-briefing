@@ -150,6 +150,8 @@ function el(tag, className, text) {
   return node;
 }
 
+const renderRichText = window.BRIEFING_SAFE_RENDER.renderRichText;
+
 function issuesOf(region, cat) {
   return ISSUES
     .filter((x) => x.region === region && (!cat || x.cat === cat))
@@ -649,7 +651,7 @@ function renderHeads() {
       peek.hidden = false;
       it.facts.slice(0, peekCount).forEach((text) => {
         const line = el('span', 'peek-line');
-        line.innerHTML = text;      // 강조 태그만 든 고정 문자열
+        renderRichText(line, text);
         peek.appendChild(line);
       });
     }
@@ -707,7 +709,7 @@ function openDetail(id) {
   const facts = frag.querySelector('.dt-facts');
   it.facts.forEach((text) => {
     const li = el('li');
-    li.innerHTML = text;          // 강조 태그만 든 고정 문자열
+    renderRichText(li, text);
     facts.appendChild(li);
   });
   if (it.note) {
@@ -740,12 +742,12 @@ function openDetail(id) {
   const notes = frag.querySelector('.dt-notes');
   it.notes.forEach((text) => {
     const li = el('li');
-    li.innerHTML = text;
+    renderRichText(li, text);
     notes.appendChild(li);
   });
 
   const op = frag.querySelector('.dt-opinion');
-  op.innerHTML = it.opinion;
+  renderRichText(op, it.opinion);
 
   body.appendChild(frag);
   dt.hidden = false;

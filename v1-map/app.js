@@ -148,6 +148,8 @@ function el(tag, className, text) {
   return node;
 }
 
+const renderRichText = window.BRIEFING_SAFE_RENDER.renderRichText;
+
 /** 모든 카드의 용어를 한 곳에 모은다 (id → {term, card}) */
 const TERM_INDEX = (() => {
   const map = new Map();
@@ -274,7 +276,7 @@ function renderGraph() {
       const ul = el('ul', 'nd-facts');
       card.facts.forEach((text) => {
         const li = el('li');
-        li.innerHTML = text;     // 강조 태그만 든 고정 문자열
+        renderRichText(li, text);
         ul.appendChild(li);
       });
       if (card.note) {
@@ -473,7 +475,11 @@ function drawLinks() {
     d += 'M' + x1 + ' ' + p.y + ' C ' + mx + ' ' + p.y + ', ' + mx + ' ' + n.y + ', ' + x2 + ' ' + n.y + ' ';
   });
 
-  svg.innerHTML = '<path class="link" d="' + d + '" />';
+  svg.replaceChildren();
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('class', 'link');
+  path.setAttribute('d', d);
+  svg.appendChild(path);
 }
 
 function startDrift() {
@@ -530,7 +536,7 @@ function openPop(node) {
     const ul = el('ul', 'pop-list');
     card.notes.forEach((text) => {
       const li = el('li');
-      li.innerHTML = text;
+      renderRichText(li, text);
       ul.appendChild(li);
     });
     body.appendChild(ul);
@@ -582,7 +588,7 @@ function openPanel(cardIndex) {
   const facts = frag.querySelector('.pn-facts');
   card.facts.forEach((text) => {
     const li = el('li');
-    li.innerHTML = text;
+    renderRichText(li, text);
     facts.appendChild(li);
   });
   if (card.note) {
@@ -612,7 +618,7 @@ function openPanel(cardIndex) {
   const notes = frag.querySelector('.pn-notes');
   card.notes.forEach((text) => {
     const li = el('li');
-    li.innerHTML = text;
+    renderRichText(li, text);
     notes.appendChild(li);
   });
 
@@ -644,7 +650,7 @@ function renderCard() {
   const facts = frag.querySelector('.facts');
   card.facts.forEach((text) => {
     const li = el('li');
-    li.innerHTML = text;
+    renderRichText(li, text);
     facts.appendChild(li);
   });
   if (card.note) {
@@ -672,7 +678,7 @@ function renderCard() {
   const notes = frag.querySelector('.notes');
   card.notes.forEach((text) => {
     const li = el('li');
-    li.innerHTML = text;
+    renderRichText(li, text);
     notes.appendChild(li);
   });
 

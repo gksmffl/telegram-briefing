@@ -7,6 +7,7 @@ const {
   fetchChannel,
   sourceMap,
   extractOutputText,
+  validateGeneratedItems,
   OUTPUT_SCHEMA,
 } = refreshApi._test;
 
@@ -51,8 +52,12 @@ test('Responses API output text can be extracted from message content', () => {
   assert.equal(text, '{"items":[]}');
 });
 
-test('LLM output contract is strict and capped', () => {
+test('LLM output schema stays strict-compatible while server validator enforces the item cap', () => {
   assert.equal(OUTPUT_SCHEMA.additionalProperties, false);
-  assert.equal(OUTPUT_SCHEMA.properties.items.maxItems, 8);
+  assert.deepEqual(OUTPUT_SCHEMA.properties.items.items.properties.imp.enum, [1, 2, 3]);
   assert.deepEqual(OUTPUT_SCHEMA.properties.items.items.properties.metric.properties.dir.enum, ['up', 'down', 'flat', 'none']);
+  assert.throws(
+    () => validateGeneratedItems(Array.from({ length: 9 }, () => ({})), new Set()),
+    /exceed 8/,
+  );
 });

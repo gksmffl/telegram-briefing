@@ -58,7 +58,7 @@ test('generated-item contract rejects invalid enums, missing grounding, unsafe h
   assert.match(errors, /invalid region/);
   assert.match(errors, /invalid category/);
   assert.match(errors, /imp must be an integer from 1 to 3/);
-  assert.match(errors, /metric.dir must be up, down, flat, or neutral/);
+  assert.match(errors, /invalid metric.dir/);
   assert.match(errors, /only <b> rich text is allowed/);
   assert.match(errors, /missing source missing\/2/);
   assert.match(errors, /term.name required/);

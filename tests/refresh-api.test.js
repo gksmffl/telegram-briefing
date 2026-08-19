@@ -13,7 +13,7 @@ const {
 test('Telegram preview parser extracts source id, time and readable text', () => {
   const html = `
     <div class="tgme_widget_message" data-post="foo/10">
-      <div class="tgme_widget_message_text js-message_text" dir="auto">첫 번째 <b>시장</b> 글<br>내용입니다.</div>
+      <div class="tgme_widget_message_text js-message_text" dir="auto">첫 번째 <b>시장</b> 글<br>내용입니다. 테스트를 위해 충분히 긴 본문을 넣습니다.</div>
       <time datetime="2026-08-19T01:00:00+00:00"></time>
     </div>
     <div class="tgme_widget_message" data-post="foo/11">

@@ -37,7 +37,7 @@
     const failed = rows.filter((row) => !row.ok).length;
     const note = document.getElementById('rf-note');
     if (!note) return;
-    note.textContent = `채널 ${rows.length}개 확인 완료 · 새 글 ${total}건${failed ? ` · 실패 ${failed}개` : ''} · 새 글이 있을 때만 AI를 호출해요.`;
+    note.textContent = `채널 ${rows.length}개 확인 완료 · 새 글 ${total}건${failed ? ` · 실패 ${failed}개` : ''} · 새 글이 있을 때만 Gemini를 호출해요.`;
   }
 
   function updateGeneratedTimestamp() {
@@ -83,7 +83,7 @@
       setRefreshNote(rows, total);
 
       if (!payload.processed && total > 0) {
-        toast('새 원문은 찾았지만 LLM 설정이 아직 없어요. Vercel에 OPENAI_API_KEY를 설정해주세요.');
+        toast('새 원문은 찾았지만 Gemini 설정이 아직 없어요. Vercel에 GEMINI_API_KEY를 설정해주세요.');
         return;
       }
 

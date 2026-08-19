@@ -1,8 +1,5 @@
 /* Shared Telegram channel configuration.
- *
- * Keep canonical channel metadata here. View-specific app.js files may still contain
- * legacy defaults during the Phase 1 migration, but phase1-hardening.js replaces
- * those arrays with this configuration at runtime.
+ * Browser views and the server refresh API consume this same source of truth.
  */
 (() => {
   'use strict';
@@ -17,7 +14,10 @@
     { id: 'rafikiresearch', name: 'Rafiki research', last: 24303 },
   ];
 
-  window.BRIEFING_CHANNELS = Object.freeze(
+  const frozen = Object.freeze(
     channels.map((channel) => Object.freeze({ ...channel })),
   );
+
+  if (typeof window !== 'undefined') window.BRIEFING_CHANNELS = frozen;
+  if (typeof module !== 'undefined' && module.exports) module.exports = frozen;
 })();

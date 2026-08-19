@@ -1,39 +1,51 @@
-/* Constrained rich-text renderer for Phase 1.
+/* Explicit constrained rich-text renderer.
  *
- * Existing prototype data uses innerHTML only to emphasize fragments with <b>.
- * Before any LLM-generated content is introduced, block every other HTML tag and
- * attribute at the DOM sink. SVG rendering is intentionally excluded.
+ * Briefing copy may use <b>...</b> for emphasis. Everything else is rendered as
+ * literal text. Call renderRichText(element, value) at the specific DOM sink.
  */
 (() => {
   'use strict';
 
-  const descriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
-  if (!descriptor || typeof descriptor.set !== 'function' || typeof descriptor.get !== 'function') return;
+  function tokenizeBold(value) {
+    const text = String(value ?? '');
+    const tokens = [];
+    const re = /<\/?b>/gi;
+    let index = 0;
+    let bold = false;
+    let match = re.exec(text);
 
-  const nativeGet = descriptor.get;
-  const nativeSet = descriptor.set;
-
-  function boldOnly(value) {
-    return String(value ?? '')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/&lt;b&gt;/gi, '<b>')
-      .replace(/&lt;\/b&gt;/gi, '</b>');
+    while (match) {
+      if (match.index > index) tokens.push({ text: text.slice(index, match.index), bold });
+      bold = match[0][1] !== '/';
+      index = re.lastIndex;
+      match = re.exec(text);
+    }
+    if (index < text.length) tokens.push({ text: text.slice(index), bold });
+    return tokens;
   }
 
-  Object.defineProperty(Element.prototype, 'innerHTML', {
-    configurable: descriptor.configurable,
-    enumerable: descriptor.enumerable,
-    get: nativeGet,
-    set(value) {
-      // The map view builds SVG paths with innerHTML; keep that rendering path intact.
-      if (this.namespaceURI === 'http://www.w3.org/2000/svg') {
-        nativeSet.call(this, value);
-        return;
-      }
-      nativeSet.call(this, boldOnly(value));
-    },
-  });
+  function renderRichText(element, value) {
+    if (!element || typeof element.replaceChildren !== 'function') {
+      throw new TypeError('renderRichText requires a DOM Element');
+    }
 
-  window.BRIEFING_SAFE_RENDER = Object.freeze({ boldOnly });
+    const fragment = document.createDocumentFragment();
+    tokenizeBold(value).forEach((token) => {
+      if (!token.text) return;
+      if (token.bold) {
+        const strong = document.createElement('b');
+        strong.textContent = token.text;
+        fragment.appendChild(strong);
+      } else {
+        fragment.appendChild(document.createTextNode(token.text));
+      }
+    });
+    element.replaceChildren(fragment);
+    return element;
+  }
+
+  window.BRIEFING_SAFE_RENDER = Object.freeze({
+    tokenizeBold,
+    renderRichText,
+  });
 })();

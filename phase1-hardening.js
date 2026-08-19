@@ -88,6 +88,7 @@
   }
 
   function installResponsiveStyles() {
+    if (typeof document === 'undefined') return;
     if (document.getElementById('briefing-responsive-hardening')) return;
     const style = document.createElement('style');
     style.id = 'briefing-responsive-hardening';
@@ -232,6 +233,7 @@
   }
 
   function hardenMobileMap() {
+    if (typeof document === 'undefined') return;
     if (!document.getElementById('view-map')) return;
     if (typeof layoutGraph !== 'function' || typeof drawLinks !== 'function' || typeof startDrift !== 'function') return;
     if (typeof state === 'undefined' || typeof GRAPH === 'undefined') return;
@@ -318,7 +320,7 @@
       }
 
       const result = nativeLayoutGraph(pass);
-      if (state.mode === 'map' && !state.raf && window.innerWidth > 700) nativeStartDrift();
+      if (state.mode === 'map' && !state.raf && typeof window !== 'undefined' && window.innerWidth > 700) nativeStartDrift();
       return result;
     };
 
@@ -361,7 +363,7 @@
 
   // Observe successful Telegram proxy responses, but do not advance CHANNELS yet.
   // The current refresh still needs the old cursor in order to count fresh posts correctly.
-  if (typeof window.fetch === 'function') {
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
     const nativeFetch = window.fetch.bind(window);
     window.fetch = async (...args) => {
       const response = await nativeFetch(...args);

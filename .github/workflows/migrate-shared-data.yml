@@ -1,44 +1,27 @@
 name: Migrate shared briefing data
 
 on:
-  push:
-    branches:
-      - agent/phase1-hardening
+  pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   migrate:
-    if: ${{ !contains(github.event.head_commit.message, '[shared-data-migrated]') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: agent/phase1-hardening
-          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Skip if migration already applied
-        id: state
-        run: |
-          if [ -f data/briefing-data.js ]; then
-            echo "needed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "needed=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Generate canonical shared data
-        if: steps.state.outputs.needed == 'true'
         run: node scripts/migrate-shared-data.mjs
 
       - name: Validate migrated scripts
-        if: steps.state.outputs.needed == 'true'
         run: |
           node --check app.js
           node --check v1-map/app.js
@@ -51,11 +34,18 @@ jobs:
           grep -q 'window.BRIEFING_DATA.sources' v1-map/app.js
           grep -q 'window.BRIEFING_DATA.cards' v1-map/app.js
 
-      - name: Commit generated migration
-        if: steps.state.outputs.needed == 'true'
+      - name: Package migrated files
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app.js v1-map/app.js index.html v1-map/index.html data/briefing-data.js
-          git commit -m "Centralize briefing data [shared-data-migrated]"
-          git push origin HEAD:agent/phase1-hardening
+          mkdir -p migrated/v1-map migrated/data
+          cp app.js migrated/app.js
+          cp index.html migrated/index.html
+          cp v1-map/app.js migrated/v1-map/app.js
+          cp v1-map/index.html migrated/v1-map/index.html
+          cp data/briefing-data.js migrated/data/briefing-data.js
+
+      - name: Upload migrated files
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-data-migration
+          path: migrated
+          if-no-files-found: error

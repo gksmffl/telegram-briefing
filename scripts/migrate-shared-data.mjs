@@ -110,19 +110,27 @@ function stableJson(value) {
   return JSON.stringify(value, null, 2);
 }
 
-function canonicalize(value) {
-  if (Array.isArray(value)) return value.map(canonicalize);
-  if (!value || typeof value !== 'object') return value;
-
-  return Object.fromEntries(
-    Object.keys(value)
-      .sort()
-      .map((key) => [key, canonicalize(value[key])]),
-  );
+function sameIdentity(a, b) {
+  return a && b && a.ch === b.ch && a.id === b.id && a.at === b.at;
 }
 
-function equivalent(a, b) {
-  return JSON.stringify(canonicalize(a)) === JSON.stringify(canonicalize(b));
+function mergeSourceVersions(a, b, key) {
+  if (!sameIdentity(a, b)) {
+    throw new Error(`Source ${key} identity differs between globe and map/card data`);
+  }
+
+  const aText = typeof a.text === 'string' ? a.text : '';
+  const bText = typeof b.text === 'string' ? b.text : '';
+  const preferred = bText.length > aText.length ? b : a;
+
+  return {
+    ...preferred,
+    ch: a.ch,
+    id: a.id,
+    at: a.at,
+    text: bText.length > aText.length ? bText : aText,
+    ...(a.truncated || b.truncated ? { truncated: true } : {}),
+  };
 }
 
 function mergeSources(primary, secondary) {
@@ -132,9 +140,7 @@ function mergeSources(primary, secondary) {
       merged[key] = value;
       continue;
     }
-    if (!equivalent(merged[key], value)) {
-      throw new Error(`Source ${key} differs between globe and map/card data`);
-    }
+    merged[key] = mergeSourceVersions(merged[key], value, key);
   }
   return merged;
 }

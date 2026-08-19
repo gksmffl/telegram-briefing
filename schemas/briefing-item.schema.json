@@ -7,7 +7,7 @@
   "required": ["title", "metric", "facts", "sources", "notes", "opinion"],
   "properties": {
     "id": { "type": "string", "minLength": 1 },
-    "region": { "enum": ["us", "kr", "cn", "jp"] },
+    "region": { "enum": ["us", "kr", "cn", "jp", "eu"] },
     "cat": { "enum": ["rate", "fx", "stock", "corp"] },
     "imp": { "type": "integer", "minimum": 1, "maximum": 3 },
     "tag": { "type": "string", "minLength": 1 },

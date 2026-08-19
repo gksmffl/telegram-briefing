@@ -33,6 +33,24 @@
     if (panel) panel.hidden = false;
   }
 
+  function setRefreshNote(rows, total) {
+    const failed = rows.filter((row) => !row.ok).length;
+    const note = document.getElementById('rf-note');
+    if (!note) return;
+    note.textContent = `채널 ${rows.length}개 확인 완료 · 새 글 ${total}건${failed ? ` · 실패 ${failed}개` : ''} · 새 글이 있을 때만 AI를 호출해요.`;
+  }
+
+  function updateGeneratedTimestamp() {
+    if (!window.BRIEFING_GENERATED) return;
+    const snapshot = window.BRIEFING_GENERATED.load();
+    if (!snapshot.generatedAt) return;
+    const date = new Date(snapshot.generatedAt);
+    if (!Number.isFinite(date.getTime())) return;
+    const label = `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    const stat = document.getElementById('stat-snap');
+    if (stat) stat.textContent = label;
+  }
+
   refresh = async function onDemandRefresh() {
     if (state.refreshing) return;
     state.refreshing = true;
@@ -62,6 +80,7 @@
       const rows = (payload.rows || []).map(rowForUi);
       renderRefresh(rows, true);
       const total = rows.filter((row) => row.ok).reduce((sum, row) => sum + row.count, 0);
+      setRefreshNote(rows, total);
 
       if (!payload.processed && total > 0) {
         toast('새 원문은 찾았지만 LLM 설정이 아직 없어요. Vercel에 OPENAI_API_KEY를 설정해주세요.');
@@ -88,6 +107,7 @@
         error: error && error.message ? error.message : '새로고침에 실패했어요.',
       }));
       renderRefresh(rows, true);
+      setRefreshNote(rows, 0);
       toast('새로고침에 실패했어요. 아래 사유를 확인해주세요.');
     } finally {
       btn.classList.remove('is-busy');
@@ -95,4 +115,6 @@
       state.refreshing = false;
     }
   };
+
+  document.addEventListener('DOMContentLoaded', updateGeneratedTimestamp);
 })();

@@ -26,7 +26,7 @@ test('explicit rich-text renderer allows only <b> emphasis', () => {
       return { children: [], appendChild(node) { this.children.push(node); } };
     },
     createElement(tag) {
-      return { tag, textContent: '', children: [], appendChild(node) { this.children.push(node); } };
+      return { tag, textContent: '', children: [] };
     },
     createTextNode(text) { return { text }; },
   };

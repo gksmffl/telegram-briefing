@@ -1,6 +1,7 @@
 /* Phase 1 hardening
  * - Shares Telegram refresh cursors across globe/map/card views.
  * - Prevents the same Telegram posts from being reported as "new" on every refresh.
+ * - Applies one shared Telegram channel configuration to every view.
  *
  * Loaded after each view's app.js and before DOMContentLoaded.
  */
@@ -27,6 +28,17 @@
     } catch {
       return false;
     }
+  }
+
+  function applySharedChannels() {
+    if (typeof CHANNELS === 'undefined' || !Array.isArray(CHANNELS)) return;
+    if (!Array.isArray(window.BRIEFING_CHANNELS)) return;
+
+    CHANNELS.splice(
+      0,
+      CHANNELS.length,
+      ...window.BRIEFING_CHANNELS.map((channel) => ({ ...channel })),
+    );
   }
 
   function applyStoredCursors() {
@@ -80,6 +92,7 @@
     };
   }
 
+  applySharedChannels();
   applyStoredCursors();
 
   // app.js binds the refresh function during DOMContentLoaded. Reassigning it here means

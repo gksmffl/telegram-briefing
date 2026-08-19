@@ -6,6 +6,24 @@ function collectPageErrors(page) {
   return errors;
 }
 
+async function expectNoHorizontalOverflow(page) {
+  const metrics = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    htmlScroll: document.documentElement.scrollWidth,
+    bodyScroll: document.body.scrollWidth,
+  }));
+  expect(metrics.htmlScroll).toBeLessThanOrEqual(metrics.viewport + 1);
+  expect(metrics.bodyScroll).toBeLessThanOrEqual(metrics.viewport + 1);
+}
+
+async function expectNodeInsideViewport(page, locator) {
+  const box = await locator.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box).not.toBeNull();
+  expect(box.x).toBeGreaterThanOrEqual(-1);
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
+}
+
 async function mockRefreshApi(page, { withGeneratedItem = false } = {}) {
   let calls = 0;
   await page.route('**/api/refresh', async (route) => {
@@ -101,6 +119,47 @@ test('map → panel → card flow and feedback persistence work', async ({ page 
   await expect(page.locator('.card')).toBeVisible();
   const afterReload = await page.evaluate(() => JSON.parse(localStorage.getItem('briefing:feedback:down:v1') || '[]'));
   expect(afterReload).toContain(`term:${termId}`);
+  expect(pageErrors).toEqual([]);
+});
+
+test('mobile map reflows vertically without horizontal overflow at 390px', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const pageErrors = collectPageErrors(page);
+  await page.goto('/v1-map/index.html#map');
+
+  await expect(page.locator('.nd-event')).toHaveCount(3);
+  await expectNoHorizontalOverflow(page);
+  await expectNodeInsideViewport(page, page.locator('.nd-event').first());
+  await expectNodeInsideViewport(page, page.locator('.nd-source').first());
+
+  const xPositions = await page.locator('.nd-event').evaluateAll((nodes) => nodes.map((node) => {
+    const rect = node.getBoundingClientRect();
+    return Math.round(rect.left + rect.width / 2);
+  }));
+  expect(Math.max(...xPositions) - Math.min(...xPositions)).toBeLessThan(24);
+
+  await page.locator('.nd-event').first().click();
+  await expect(page.locator('#panel')).toBeVisible();
+  const panelBox = await page.locator('#panel .pn').boundingBox();
+  expect(panelBox.x).toBeGreaterThanOrEqual(-1);
+  expect(panelBox.x + panelBox.width).toBeLessThanOrEqual(391);
+  await expectNoHorizontalOverflow(page);
+  expect(pageErrors).toEqual([]);
+});
+
+test('map and globe stay within a 320px viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  const pageErrors = collectPageErrors(page);
+
+  await page.goto('/v1-map/index.html#map');
+  await expect(page.locator('.nd-event').first()).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await expectNodeInsideViewport(page, page.locator('.nd-event').first());
+
+  await page.goto('/');
+  await expect(page.locator('#globe')).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await expect(page.locator('#rg-eu')).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
 

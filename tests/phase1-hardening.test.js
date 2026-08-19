@@ -20,36 +20,46 @@ function memoryStorage(initial = {}) {
   };
 }
 
-test('safe renderer preserves only <b> markup for HTML elements', () => {
-  class FakeElement {
-    constructor(namespaceURI = 'http://www.w3.org/1999/xhtml') {
-      this.namespaceURI = namespaceURI;
-      this._html = '';
-    }
-  }
-  Object.defineProperty(FakeElement.prototype, 'innerHTML', {
-    configurable: true,
-    enumerable: true,
-    get() { return this._html; },
-    set(value) { this._html = String(value); },
-  });
-
+test('explicit rich-text renderer allows only <b> emphasis', () => {
+  const document = {
+    createDocumentFragment() {
+      return { children: [], appendChild(node) { this.children.push(node); } };
+    },
+    createElement(tag) {
+      return { tag, textContent: '', children: [], appendChild(node) { this.children.push(node); } };
+    },
+    createTextNode(text) { return { text }; },
+  };
   const window = {};
-  const context = vm.createContext({ window, Element: FakeElement });
+  const context = vm.createContext({ window, document, String, Object, RegExp, TypeError });
   vm.runInContext(read('safe-render.js'), context, { filename: 'safe-render.js' });
 
-  const input = '<img src=x onerror=alert(1)><b>kept</b><i>escaped</i>';
-  const html = new FakeElement();
-  html.innerHTML = input;
+  const target = {
+    children: [],
+    replaceChildren(fragment) { this.children = fragment.children; },
+  };
+  const input = '<img src=x onerror=alert(1)><b>kept</b><i>literal</i>';
+  window.BRIEFING_SAFE_RENDER.renderRichText(target, input);
 
-  assert.equal(
-    html.innerHTML,
-    '&lt;img src=x onerror=alert(1)&gt;<b>kept</b>&lt;i&gt;escaped&lt;/i&gt;',
+  assert.deepEqual(target.children, [
+    { text: '<img src=x onerror=alert(1)>' },
+    { tag: 'b', textContent: 'kept', children: [] },
+    { text: '<i>literal</i>' },
+  ]);
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(window.BRIEFING_SAFE_RENDER.tokenizeBold('a<b>b</b>c'))),
+    [
+      { text: 'a', bold: false },
+      { text: 'b', bold: true },
+      { text: 'c', bold: false },
+    ],
   );
+});
 
-  const svg = new FakeElement('http://www.w3.org/2000/svg');
-  svg.innerHTML = '<path d="M0 0L1 1" />';
-  assert.equal(svg.innerHTML, '<path d="M0 0L1 1" />');
+test('application scripts contain no innerHTML assignment sinks', () => {
+  assert.doesNotMatch(read('app.js'), /\.innerHTML\s*=/);
+  assert.doesNotMatch(read('v1-map/app.js'), /\.innerHTML\s*=/);
 });
 
 test('shared channels and stored cursor are applied before refresh', () => {

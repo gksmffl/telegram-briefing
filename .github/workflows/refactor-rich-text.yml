@@ -1,16 +1,22 @@
 name: Refactor rich text
 
 on:
-  pull_request:
+  push:
+    branches:
+      - agent/phase1-hardening
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   refactor:
+    if: ${{ !contains(github.event.head_commit.message, '[rich-text-refactored]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: agent/phase1-hardening
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -21,13 +27,10 @@ jobs:
           node --check app.js
           node --check v1-map/app.js
           ! grep -R "\.innerHTML[[:space:]]*=" app.js v1-map/app.js
-      - name: Package refactored apps
+      - name: Commit refactored apps
         run: |
-          mkdir -p refactored/v1-map
-          cp app.js refactored/app.js
-          cp v1-map/app.js refactored/v1-map/app.js
-      - uses: actions/upload-artifact@v4
-        with:
-          name: explicit-rich-text-apps
-          path: refactored
-          if-no-files-found: error
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js v1-map/app.js
+          git commit -m "Use explicit rich-text renderer [rich-text-refactored]"
+          git push origin HEAD:agent/phase1-hardening

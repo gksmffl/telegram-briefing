@@ -2,12 +2,12 @@ const channels = require('../data/channels.js');
 
 const MAX_MESSAGES = 40;
 const MAX_ITEMS = 8;
-const OPENAI_URL = 'https://api.openai.com/v1/responses';
-const DEFAULT_MODEL = 'gpt-5.6-luna';
+const GEMINI_API_ROOT = 'https://generativelanguage.googleapis.com/v1beta/models';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
 const SAFE_RICH_TEXT = /<(?!\/?b\s*>)[^>]+>/i;
 const PROHIBITED_OPINION = [/매수하/i, /매도하/i, /사세요/i, /팔아/i, /추천합/i, /유망/i, /오를 것으로 보/i, /내릴 것으로 보/i, /목표주가를 제시/i];
 
-// Keep the strict Structured Outputs schema intentionally conservative. Product-level
+// Keep the structured-output schema intentionally conservative. Product-level
 // constraints that are not necessary for shape generation are enforced after parsing.
 const OUTPUT_SCHEMA = {
   type: 'object',
@@ -160,15 +160,28 @@ function sourceMap(messages) {
 }
 
 function extractOutputText(response) {
-  if (typeof response.output_text === 'string' && response.output_text.trim()) return response.output_text;
   const chunks = [];
-  for (const item of response.output || []) {
-    if (item.type !== 'message') continue;
-    for (const content of item.content || []) {
-      if (content.type === 'output_text' && typeof content.text === 'string') chunks.push(content.text);
+  for (const candidate of response.candidates || []) {
+    for (const part of (candidate.content && candidate.content.parts) || []) {
+      if (typeof part.text === 'string') chunks.push(part.text);
     }
   }
-  return chunks.join('\n');
+  return chunks.join('\n').trim();
+}
+
+function geminiUrl(model = DEFAULT_MODEL) {
+  return `${GEMINI_API_ROOT}/${encodeURIComponent(model)}:generateContent`;
+}
+
+function geminiRequestBody(input) {
+  return {
+    contents: [{ role: 'user', parts: [{ text: input }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseJsonSchema: OUTPUT_SCHEMA,
+      temperature: 0.2,
+    },
+  };
 }
 
 function nonEmpty(value) {
@@ -209,7 +222,7 @@ function validateGeneratedItems(items, allowedSources) {
 }
 
 async function generateItems(messages, existingItems, fetchImpl = fetch) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return { configured: false, items: [] };
 
   const compactExisting = (Array.isArray(existingItems) ? existingItems : []).slice(-30).map((item) => ({
@@ -237,34 +250,24 @@ async function generateItems(messages, existingItems, fetchImpl = fetch) {
     ...messages.map((message) => `SOURCE_KEY=${message.key}\n${message.text}`),
   ].join('\n\n');
 
-  const response = await fetchImpl(OPENAI_URL, {
+  const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  const response = await fetchImpl(geminiUrl(model), {
     method: 'POST',
     headers: {
-      authorization: `Bearer ${apiKey}`,
+      'x-goog-api-key': apiKey,
       'content-type': 'application/json',
     },
-    body: JSON.stringify({
-      model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-      input,
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'telegram_briefing_refresh',
-          strict: true,
-          schema: OUTPUT_SCHEMA,
-        },
-      },
-    }),
+    body: JSON.stringify(geminiRequestBody(input)),
   });
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`OpenAI ${response.status}: ${detail.slice(0, 300)}`);
+    throw new Error(`Gemini ${response.status}: ${detail.slice(0, 300)}`);
   }
 
   const payload = await response.json();
   const text = extractOutputText(payload);
-  if (!text) throw new Error('OpenAI response did not contain structured output');
+  if (!text) throw new Error('Gemini response did not contain structured output');
   const parsed = JSON.parse(text);
   const allowedSources = new Set(messages.map((message) => message.key));
   const items = Array.isArray(parsed.items) ? parsed.items : [];
@@ -310,7 +313,7 @@ async function handler(req, res) {
       return json(res, 200, {
         ok: true,
         processed: true,
-        llmConfigured: Boolean(process.env.OPENAI_API_KEY),
+        llmConfigured: Boolean(process.env.GEMINI_API_KEY),
         rows,
         cursors: candidateCursors,
         sources: {},
@@ -324,7 +327,7 @@ async function handler(req, res) {
         ok: true,
         processed: false,
         llmConfigured: false,
-        reason: 'OPENAI_API_KEY is not configured',
+        reason: 'GEMINI_API_KEY is not configured',
         rows,
         cursors,
         candidateCursors,
@@ -355,6 +358,9 @@ module.exports._test = {
   fetchChannel,
   sourceMap,
   extractOutputText,
+  geminiUrl,
+  geminiRequestBody,
   validateGeneratedItems,
   OUTPUT_SCHEMA,
+  DEFAULT_MODEL,
 };

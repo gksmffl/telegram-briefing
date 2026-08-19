@@ -15,13 +15,13 @@ async function mockRefreshApi(page, { withGeneratedItem = false } = {}) {
       .map((id) => ({ id, name: id, ok: true, count: first ? 1 : 0, preview: first ? '새 원문 테스트 본문' : '' }));
     const items = first && withGeneratedItem ? [{
       id: 'generated-test',
-      region: 'us',
-      cat: 'stock',
+      region: 'eu',
+      cat: 'rate',
       imp: 2,
-      tag: '미국 · 주식',
+      tag: '유럽 · 금리',
       short: '테스트 새 이슈',
-      title: '새로고침으로 생성된 테스트 이슈예요',
-      metric: { value: '+1.0%', dir: 'up', sub: '테스트 지표' },
+      title: '새로고침으로 생성된 유럽 테스트 이슈예요',
+      metric: { value: '2.0%', dir: 'flat', sub: '테스트 지표' },
       facts: ['원문에 있는 <b>테스트 사실</b>이에요.'],
       note: '',
       sources: ['yieldnspread/999999'],
@@ -52,6 +52,9 @@ test('globe → issue detail → source flow renders without browser errors', as
   await page.goto('/');
 
   await expect(page.locator('#stat-issues')).toHaveText('15');
+  await expect(page.locator('#rg-eu')).toBeVisible();
+  await expect(page.locator('#rg-eu .rg-name')).toHaveText('유럽');
+
   await page.locator('#rg-us').click();
   await expect(page.locator('#pop')).toBeVisible();
   await expect(page.locator('#pop-region')).toHaveText('미국');
@@ -101,41 +104,40 @@ test('map → panel → card flow and feedback persistence work', async ({ page 
   expect(pageErrors).toEqual([]);
 });
 
-test('on-demand refresh advances cursor and second refresh reports no duplicate new posts', async ({ page }) => {
+test('on-demand refresh keeps status panel closed and advances cursor', async ({ page }) => {
   const pageErrors = collectPageErrors(page);
   await mockRefreshApi(page);
   await page.goto('/');
 
+  await expect(page.locator('#rf')).toBeHidden();
   await page.locator('#btn-refresh').click();
-  await expect(page.locator('#rf-note')).toContainText('확인 완료', { timeout: 15_000 });
-  await expect(page.locator('#rf-note')).toContainText('새 글 7건');
+  await expect(page.locator('#rf')).toBeHidden();
+  await expect(page.locator('#toast')).toContainText('새 원문 7건', { timeout: 15_000 });
 
   const cursors = await page.evaluate(() => JSON.parse(localStorage.getItem('briefing:telegram-cursors:v1') || '{}'));
   expect(Object.keys(cursors)).toHaveLength(7);
   expect(Object.values(cursors).every((value) => value === 999999)).toBeTruthy();
 
-  await page.locator('#rf-close').click();
   await page.locator('#btn-refresh').click();
-  await expect(page.locator('#rf-note')).toContainText('확인 완료', { timeout: 15_000 });
-  await expect(page.locator('#rf-note')).toContainText('새 글 0건');
+  await expect(page.locator('#rf')).toBeHidden();
+  await expect(page.locator('#toast')).toContainText('새로 올라온 글이 없어요', { timeout: 15_000 });
   expect(pageErrors).toEqual([]);
 });
 
-test('generated refresh item persists and appears in globe and card views after reload', async ({ page }) => {
+test('generated Europe refresh item persists and appears on globe after reload', async ({ page }) => {
   const pageErrors = collectPageErrors(page);
   await mockRefreshApi(page, { withGeneratedItem: true });
   await page.goto('/');
   await page.locator('#btn-refresh').click();
 
   await expect(page.locator('#stat-issues')).toHaveText('16', { timeout: 15_000 });
+  await expect(page.locator('#rf')).toBeHidden();
+
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('briefing:generated:v1') || '{}'));
-  expect(stored.items.some((item) => item.id === 'generated-test')).toBeTruthy();
+  expect(stored.items.some((item) => item.id === 'generated-test' && item.region === 'eu')).toBeTruthy();
 
-  await page.locator('#rg-us').click();
-  await page.locator('.cat[data-cat="stock"]').click();
-  await expect(page.getByText('새로고침으로 생성된 테스트 이슈예요')).toBeVisible();
-
-  await page.goto('/v1-map/index.html#card');
-  await expect(page.locator('#progress-text')).toHaveText('1 / 4');
+  await page.locator('#rg-eu').click();
+  await page.locator('.cat[data-cat="rate"]').click();
+  await expect(page.getByText('새로고침으로 생성된 유럽 테스트 이슈예요')).toBeVisible();
   expect(pageErrors).toEqual([]);
 });

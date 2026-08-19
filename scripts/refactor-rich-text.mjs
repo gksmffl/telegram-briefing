@@ -1,15 +1,11 @@
 import fs from 'node:fs';
 
-function refactor(path, replacements) {
-  let source = fs.readFileSync(path, 'utf8');
-  for (const [from, to] of replacements) {
-    if (!source.includes(from)) throw new Error(`${path}: missing expected snippet: ${from.slice(0, 80)}`);
-    source = source.replace(from, to);
-  }
-  if (/\.innerHTML\s*=/.test(source)) {
-    throw new Error(`${path}: innerHTML assignment remains after refactor`);
-  }
-  fs.writeFileSync(path, source);
+function refactor(path, transform) {
+  const source = fs.readFileSync(path, 'utf8');
+  const next = transform(source);
+  if (next === source) throw new Error(`${path}: refactor made no changes`);
+  if (/\.innerHTML\s*=/.test(next)) throw new Error(`${path}: innerHTML assignment remains after refactor`);
+  fs.writeFileSync(path, next);
 }
 
 const helperAnchor = `function el(tag, className, text) {
@@ -19,23 +15,27 @@ const helperAnchor = `function el(tag, className, text) {
   return node;
 }`;
 
-const helperWithRenderer = `${helperAnchor}\n\nconst renderRichText = window.BRIEFING_SAFE_RENDER.renderRichText;`;
+function addRenderer(source, path) {
+  if (!source.includes(helperAnchor)) throw new Error(`${path}: helper anchor not found`);
+  return source.replace(helperAnchor, `${helperAnchor}\n\nconst renderRichText = window.BRIEFING_SAFE_RENDER.renderRichText;`);
+}
 
-refactor('app.js', [
-  [helperAnchor, helperWithRenderer],
-  [`        line.innerHTML = text;      // 강조 태그만 든 고정 문자열`, `        renderRichText(line, text);`],
-  [`    li.innerHTML = text;          // 강조 태그만 든 고정 문자열`, `    renderRichText(li, text);`],
-  [`    li.innerHTML = text;\n    notes.appendChild(li);`, `    renderRichText(li, text);\n    notes.appendChild(li);`],
-  [`  const op = frag.querySelector('.dt-opinion');\n  op.innerHTML = it.opinion;`, `  const op = frag.querySelector('.dt-opinion');\n  renderRichText(op, it.opinion);`],
-]);
+refactor('app.js', (input) => {
+  let source = addRenderer(input, 'app.js');
+  source = source.replace(/line\.innerHTML = text;[^\n]*/g, 'renderRichText(line, text);');
+  source = source.replace(/li\.innerHTML = text;[^\n]*/g, 'renderRichText(li, text);');
+  source = source.replace(/op\.innerHTML = it\.opinion;/g, 'renderRichText(op, it.opinion);');
+  return source;
+});
 
-refactor('v1-map/app.js', [
-  [helperAnchor, helperWithRenderer],
-  [`        li.innerHTML = text;     // 강조 태그만 든 고정 문자열`, `        renderRichText(li, text);`],
-  [`  svg.innerHTML = '<path class="link" d="' + d + '" />';`, `  svg.replaceChildren();\n  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');\n  path.setAttribute('class', 'link');\n  path.setAttribute('d', d);\n  svg.appendChild(path);`],
-  [`      li.innerHTML = text;\n      ul.appendChild(li);`, `      renderRichText(li, text);\n      ul.appendChild(li);`],
-  [`    li.innerHTML = text;\n    facts.appendChild(li);`, `    renderRichText(li, text);\n    facts.appendChild(li);`],
-  [`    li.innerHTML = text;\n    notes.appendChild(li);`, `    renderRichText(li, text);\n    notes.appendChild(li);`],
-]);
+refactor('v1-map/app.js', (input) => {
+  let source = addRenderer(input, 'v1-map/app.js');
+  source = source.replace(/li\.innerHTML = text;[^\n]*/g, 'renderRichText(li, text);');
+  source = source.replace(
+    `  svg.innerHTML = '<path class="link" d="' + d + '" />';`,
+    `  svg.replaceChildren();\n  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');\n  path.setAttribute('class', 'link');\n  path.setAttribute('d', d);\n  svg.appendChild(path);`,
+  );
+  return source;
+});
 
 console.log('Explicit rich-text renderer applied; no innerHTML assignments remain.');

@@ -19,7 +19,7 @@
       "required": ["value", "dir", "sub"],
       "properties": {
         "value": { "type": "string", "minLength": 1 },
-        "dir": { "enum": ["up", "down", "flat"] },
+        "dir": { "enum": ["up", "down", "flat", "neutral"] },
         "sub": { "type": "string", "minLength": 1 }
       }
     },

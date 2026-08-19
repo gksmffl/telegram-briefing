@@ -69,6 +69,23 @@
     return max;
   }
 
+  function commitPendingCursors() {
+    if (pendingCursors.size === 0) return;
+
+    const stored = loadCursors();
+    pendingCursors.forEach((maxId, channelId) => {
+      const previous = Number(stored[channelId]) || 0;
+      if (maxId > previous) stored[channelId] = maxId;
+
+      if (typeof CHANNELS !== 'undefined' && Array.isArray(CHANNELS)) {
+        const channel = CHANNELS.find((item) => item.id === channelId);
+        if (channel && maxId > channel.last) channel.last = maxId;
+      }
+    });
+    saveCursors(stored);
+    pendingCursors.clear();
+  }
+
   // Observe successful Telegram proxy responses, but do not advance CHANNELS yet.
   // The current refresh still needs the old cursor in order to count fresh posts correctly.
   if (typeof window.fetch === 'function') {
@@ -104,20 +121,8 @@
       try {
         return await nativeRefresh.apply(this, args);
       } finally {
-        if (pendingCursors.size === 0) return;
-
-        const stored = loadCursors();
-        pendingCursors.forEach((maxId, channelId) => {
-          const previous = Number(stored[channelId]) || 0;
-          if (maxId > previous) stored[channelId] = maxId;
-
-          if (typeof CHANNELS !== 'undefined' && Array.isArray(CHANNELS)) {
-            const channel = CHANNELS.find((item) => item.id === channelId);
-            if (channel && maxId > channel.last) channel.last = maxId;
-          }
-        });
-        saveCursors(stored);
-        pendingCursors.clear();
+        // Never return from finally: doing so would swallow nativeRefresh return values/errors.
+        commitPendingCursors();
       }
     };
   }

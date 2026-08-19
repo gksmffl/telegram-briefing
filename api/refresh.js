@@ -3,7 +3,7 @@ const channels = require('../data/channels.js');
 const MAX_MESSAGES = 40;
 const MAX_ITEMS = 8;
 const GEMINI_API_ROOT = 'https://generativelanguage.googleapis.com/v1beta/models';
-const DEFAULT_MODEL = 'gemini-2.5-flash';
+const DEFAULT_MODEL = 'gemini-3.6-flash';
 const SAFE_RICH_TEXT = /<(?!\/?b\s*>)[^>]+>/i;
 const PROHIBITED_OPINION = [/매수하/i, /매도하/i, /사세요/i, /팔아/i, /추천합/i, /유망/i, /오를 것으로 보/i, /내릴 것으로 보/i, /목표주가를 제시/i];
 
@@ -177,8 +177,12 @@ function geminiRequestBody(input) {
   return {
     contents: [{ role: 'user', parts: [{ text: input }] }],
     generationConfig: {
-      responseMimeType: 'application/json',
-      responseJsonSchema: OUTPUT_SCHEMA,
+      responseFormat: {
+        text: {
+          mimeType: 'application/json',
+          schema: OUTPUT_SCHEMA,
+        },
+      },
       temperature: 0.2,
     },
   };

@@ -66,7 +66,7 @@ test('map → panel → card flow and feedback persistence work', async ({ page 
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('briefing:feedback:down:v1') || '[]'));
   expect(stored).toContain(`term:${termId}`);
 
-  await page.reload();
+  await page.goto('/v1-map/index.html#card');
   await expect(page.locator('.card')).toBeVisible();
   const afterReload = await page.evaluate(() => JSON.parse(localStorage.getItem('briefing:feedback:down:v1') || '[]'));
   expect(afterReload).toContain(`term:${termId}`);

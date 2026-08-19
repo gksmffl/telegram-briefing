@@ -3,6 +3,12 @@
 
   const CURSOR_STORE = 'briefing:telegram-cursors:v1';
 
+  // app.js defines REGIONS in the shared classic-script scope. This file is loaded
+  // after app.js but before DOMContentLoaded, so Europe is present when buildPins() runs.
+  if (typeof REGIONS !== 'undefined' && !REGIONS.some((region) => region.id === 'eu')) {
+    REGIONS.push({ id: 'eu', name: '유럽', en: 'EUROPE', lat: 50.5, lon: 10 });
+  }
+
   function loadCursors() {
     try {
       const parsed = JSON.parse(localStorage.getItem(CURSOR_STORE) || '{}');

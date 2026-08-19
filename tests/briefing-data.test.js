@@ -53,8 +53,8 @@ test('canonical issues and cards pass the briefing validator', () => {
     items: data.cards,
   });
 
-  assert.deepEqual(issueErrors, []);
-  assert.deepEqual(cardErrors, []);
+  assert.equal(issueErrors.length, 0, issueErrors.join('\n'));
+  assert.equal(cardErrors.length, 0, cardErrors.join('\n'));
 });
 
 test('every referenced source exists and issue ids are unique', () => {

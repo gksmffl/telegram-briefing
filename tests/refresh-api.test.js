@@ -60,7 +60,7 @@ test('Gemini request uses JSON structured output with the briefing schema', () =
   assert.equal(DEFAULT_MODEL, 'gemini-3.6-flash');
   assert.match(geminiUrl(), /gemini-3\.6-flash:generateContent$/);
   assert.equal(body.contents[0].parts[0].text, 'hello');
-  assert.equal(body.generationConfig.responseFormat.text.mimeType, 'application/json');
+  assert.equal(body.generationConfig.responseFormat.text.mimeType, 'APPLICATION_JSON');
   assert.equal(body.generationConfig.responseFormat.text.schema, OUTPUT_SCHEMA);
 });
 

@@ -7,8 +7,6 @@ const DEFAULT_MODEL = 'gemini-3.6-flash';
 const SAFE_RICH_TEXT = /<(?!\/?b\s*>)[^>]+>/i;
 const PROHIBITED_OPINION = [/매수하/i, /매도하/i, /사세요/i, /팔아/i, /추천합/i, /유망/i, /오를 것으로 보/i, /내릴 것으로 보/i, /목표주가를 제시/i];
 
-// Keep the structured-output schema intentionally conservative. Product-level
-// constraints that are not necessary for shape generation are enforced after parsing.
 const OUTPUT_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -22,7 +20,7 @@ const OUTPUT_SCHEMA = {
         required: ['id', 'region', 'cat', 'imp', 'tag', 'short', 'title', 'metric', 'facts', 'note', 'sources', 'terms', 'notes', 'opinion'],
         properties: {
           id: { type: 'string' },
-          region: { type: 'string', enum: ['us', 'kr', 'cn', 'jp'] },
+          region: { type: 'string', enum: ['us', 'kr', 'cn', 'jp', 'eu'] },
           cat: { type: 'string', enum: ['rate', 'fx', 'stock', 'corp'] },
           imp: { type: 'integer', enum: [1, 2, 3] },
           tag: { type: 'string' },
@@ -87,9 +85,7 @@ function parseBody(req) {
 }
 
 function decodeHtml(value) {
-  const named = {
-    amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
-  };
+  const named = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
   return String(value || '')
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
@@ -97,12 +93,10 @@ function decodeHtml(value) {
 }
 
 function stripHtml(value) {
-  return decodeHtml(
-    String(value || '')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<[^>]+>/g, ''),
-  )
+  return decodeHtml(String(value || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<[^>]+>/g, ''))
     .replace(/\r/g, '')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
@@ -135,8 +129,7 @@ function parseTelegramPreview(html, channelId) {
 }
 
 async function fetchChannel(channel, cursor, fetchImpl = fetch) {
-  const url = `https://t.me/s/${channel.id}`;
-  const response = await fetchImpl(url, {
+  const response = await fetchImpl(`https://t.me/s/${channel.id}`, {
     headers: {
       'user-agent': 'Mozilla/5.0 TelegramBriefing/1.0',
       accept: 'text/html,application/xhtml+xml',
@@ -241,6 +234,7 @@ async function generateItems(messages, existingItems, fetchImpl = fetch) {
     '같은 사건을 다룬 메시지는 하나의 이슈로 묶고 중요하지 않은 잡음은 제외한다.',
     `최대 ${MAX_ITEMS}개 이슈만 반환한다.`,
     '반드시 한국어로 작성한다.',
+    'region은 us=미국, kr=한국, cn=중국, jp=일본, eu=유럽(ECB·유로존·영국·독일·프랑스 등)으로 분류한다.',
     'facts는 제공된 원문에 직접 있는 내용만 쓴다. 없는 숫자나 사실을 만들지 않는다.',
     'terms/notes는 개념과 배경 설명만 하며 전망을 만들지 않는다.',
     'opinion은 왜 중요한지 해석하되 매수·매도·추천·목표주가 등 투자판단을 하지 않는다.',

@@ -6,15 +6,43 @@ function collectPageErrors(page) {
   return errors;
 }
 
-async function mockTelegramProxy(page) {
-  await page.route('https://r.jina.ai/**', async (route) => {
-    const url = route.request().url();
-    const match = url.match(/\/s\/([A-Za-z0-9_]+)/);
-    const channel = match ? match[1] : 'unknown';
+async function mockRefreshApi(page, { withGeneratedItem = false } = {}) {
+  let calls = 0;
+  await page.route('**/api/refresh', async (route) => {
+    calls += 1;
+    const first = calls === 1;
+    const rows = ['yieldnspread', 'deandatbond', 'hanwhastrategy', 'redbirdstock', 'daishinstrategy', 'aetherjapanresearch', 'rafikiresearch']
+      .map((id) => ({ id, name: id, ok: true, count: first ? 1 : 0, preview: first ? '새 원문 테스트 본문' : '' }));
+    const items = first && withGeneratedItem ? [{
+      id: 'generated-test',
+      region: 'us',
+      cat: 'stock',
+      imp: 2,
+      tag: '미국 · 주식',
+      short: '테스트 새 이슈',
+      title: '새로고침으로 생성된 테스트 이슈예요',
+      metric: { value: '+1.0%', dir: 'up', sub: '테스트 지표' },
+      facts: ['원문에 있는 <b>테스트 사실</b>이에요.'],
+      note: '',
+      sources: ['yieldnspread/999999'],
+      terms: [{ id: 'generated-term', name: '테스트 용어', full: '테스트 용어', desc: '테스트 설명입니다.' }],
+      notes: ['테스트 배경 설명입니다.'],
+      opinion: '테스트 이슈의 맥락을 보여줘요.',
+    }] : [];
     await route.fulfill({
       status: 200,
-      contentType: 'text/plain; charset=utf-8',
-      body: `Telegram preview\nhttps://t.me/${channel}/999999\n시장 브리핑 테스트용 본문입니다. 충분한 길이의 문장을 넣어 새 원문 미리보기도 정상적으로 표시되도록 합니다.`,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        processed: true,
+        llmConfigured: true,
+        rows,
+        cursors: Object.fromEntries(rows.map((row) => [row.id, 999999])),
+        sources: first ? {
+          'yieldnspread/999999': { ch: 'yieldnspread', id: 999999, at: '2026-08-19T06:00:00Z', text: '테스트 원문' },
+        } : {},
+        items,
+      }),
     });
   });
 }
@@ -73,9 +101,9 @@ test('map → panel → card flow and feedback persistence work', async ({ page 
   expect(pageErrors).toEqual([]);
 });
 
-test('mocked Telegram refresh advances cursor and does not rediscover the same posts', async ({ page }) => {
+test('on-demand refresh advances cursor and second refresh reports no duplicate new posts', async ({ page }) => {
   const pageErrors = collectPageErrors(page);
-  await mockTelegramProxy(page);
+  await mockRefreshApi(page);
   await page.goto('/');
 
   await page.locator('#btn-refresh').click();
@@ -90,6 +118,24 @@ test('mocked Telegram refresh advances cursor and does not rediscover the same p
   await page.locator('#btn-refresh').click();
   await expect(page.locator('#rf-note')).toContainText('확인 완료', { timeout: 15_000 });
   await expect(page.locator('#rf-note')).toContainText('새 글 0건');
+  expect(pageErrors).toEqual([]);
+});
 
+test('generated refresh item persists and appears in globe and card views after reload', async ({ page }) => {
+  const pageErrors = collectPageErrors(page);
+  await mockRefreshApi(page, { withGeneratedItem: true });
+  await page.goto('/');
+  await page.locator('#btn-refresh').click();
+
+  await expect(page.locator('#stat-issues')).toHaveText('16', { timeout: 15_000 });
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('briefing:generated:v1') || '{}'));
+  expect(stored.items.some((item) => item.id === 'generated-test')).toBeTruthy();
+
+  await page.locator('#rg-us').click();
+  await page.locator('.cat[data-cat="stock"]').click();
+  await expect(page.getByText('새로고침으로 생성된 테스트 이슈예요')).toBeVisible();
+
+  await page.goto('/v1-map/index.html#card');
+  await expect(page.locator('#progress-text')).toHaveText('1 / 4');
   expect(pageErrors).toEqual([]);
 });

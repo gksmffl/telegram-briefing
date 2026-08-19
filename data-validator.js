@@ -8,7 +8,7 @@
   'use strict';
 
   const SCHEMA_VERSION = '1.0.0';
-  const REGIONS = Object.freeze(['us', 'kr', 'cn', 'jp']);
+  const REGIONS = Object.freeze(['us', 'kr', 'cn', 'jp', 'eu']);
   const CATEGORIES = Object.freeze(['rate', 'fx', 'stock', 'corp']);
   const DIRECTIONS = Object.freeze(['up', 'down', 'flat', 'neutral', 'none']);
   const SOURCE_KEY = /^[A-Za-z0-9_]+\/\d+$/;

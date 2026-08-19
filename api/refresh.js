@@ -1,9 +1,14 @@
 const channels = require('../data/channels.js');
 
 const MAX_MESSAGES = 40;
+const MAX_ITEMS = 8;
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 const DEFAULT_MODEL = 'gpt-5.6-luna';
+const SAFE_RICH_TEXT = /<(?!\/?b\s*>)[^>]+>/i;
+const PROHIBITED_OPINION = [/매수하/i, /매도하/i, /사세요/i, /팔아/i, /추천합/i, /유망/i, /오를 것으로 보/i, /내릴 것으로 보/i, /목표주가를 제시/i];
 
+// Keep the strict Structured Outputs schema intentionally conservative. Product-level
+// constraints that are not necessary for shape generation are enforced after parsing.
 const OUTPUT_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -11,32 +16,31 @@ const OUTPUT_SCHEMA = {
   properties: {
     items: {
       type: 'array',
-      maxItems: 8,
       items: {
         type: 'object',
         additionalProperties: false,
         required: ['id', 'region', 'cat', 'imp', 'tag', 'short', 'title', 'metric', 'facts', 'note', 'sources', 'terms', 'notes', 'opinion'],
         properties: {
-          id: { type: 'string', minLength: 1 },
+          id: { type: 'string' },
           region: { type: 'string', enum: ['us', 'kr', 'cn', 'jp'] },
           cat: { type: 'string', enum: ['rate', 'fx', 'stock', 'corp'] },
-          imp: { type: 'integer', minimum: 1, maximum: 3 },
-          tag: { type: 'string', minLength: 1 },
-          short: { type: 'string', minLength: 1 },
-          title: { type: 'string', minLength: 1 },
+          imp: { type: 'integer', enum: [1, 2, 3] },
+          tag: { type: 'string' },
+          short: { type: 'string' },
+          title: { type: 'string' },
           metric: {
             type: 'object',
             additionalProperties: false,
             required: ['value', 'dir', 'sub'],
             properties: {
-              value: { type: 'string', minLength: 1 },
+              value: { type: 'string' },
               dir: { type: 'string', enum: ['up', 'down', 'flat', 'none'] },
-              sub: { type: 'string', minLength: 1 },
+              sub: { type: 'string' },
             },
           },
-          facts: { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 } },
+          facts: { type: 'array', items: { type: 'string' } },
           note: { type: 'string' },
-          sources: { type: 'array', minItems: 1, uniqueItems: true, items: { type: 'string', minLength: 1 } },
+          sources: { type: 'array', items: { type: 'string' } },
           terms: {
             type: 'array',
             items: {
@@ -44,15 +48,15 @@ const OUTPUT_SCHEMA = {
               additionalProperties: false,
               required: ['id', 'name', 'full', 'desc'],
               properties: {
-                id: { type: 'string', minLength: 1 },
-                name: { type: 'string', minLength: 1 },
-                full: { type: 'string', minLength: 1 },
-                desc: { type: 'string', minLength: 1 },
+                id: { type: 'string' },
+                name: { type: 'string' },
+                full: { type: 'string' },
+                desc: { type: 'string' },
               },
             },
           },
-          notes: { type: 'array', items: { type: 'string', minLength: 1 } },
-          opinion: { type: 'string', minLength: 1 },
+          notes: { type: 'array', items: { type: 'string' } },
+          opinion: { type: 'string' },
         },
       },
     },
@@ -167,6 +171,43 @@ function extractOutputText(response) {
   return chunks.join('\n');
 }
 
+function nonEmpty(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function validateGeneratedItems(items, allowedSources) {
+  if (!Array.isArray(items)) throw new Error('generated items must be an array');
+  if (items.length > MAX_ITEMS) throw new Error(`generated items exceed ${MAX_ITEMS}`);
+
+  items.forEach((item, index) => {
+    const label = `generated item ${item && item.id || index}`;
+    if (!item || typeof item !== 'object') throw new Error(`${label}: object required`);
+    ['id', 'tag', 'short', 'title', 'opinion'].forEach((field) => {
+      if (!nonEmpty(item[field])) throw new Error(`${label}: ${field} required`);
+    });
+    if (!Array.isArray(item.facts) || item.facts.length === 0 || item.facts.some((text) => !nonEmpty(text))) {
+      throw new Error(`${label}: non-empty facts required`);
+    }
+    if (!Array.isArray(item.sources) || item.sources.length === 0) throw new Error(`${label}: source required`);
+    if (new Set(item.sources).size !== item.sources.length) throw new Error(`${label}: duplicate sources`);
+    item.sources.forEach((key) => {
+      if (!allowedSources.has(key)) throw new Error(`${label}: unknown source ${key}`);
+    });
+    if (!Array.isArray(item.terms) || !Array.isArray(item.notes)) throw new Error(`${label}: terms/notes arrays required`);
+    [...item.facts, ...item.notes, item.opinion].forEach((text) => {
+      if (SAFE_RICH_TEXT.test(text)) throw new Error(`${label}: unsafe rich text`);
+    });
+    if (PROHIBITED_OPINION.some((pattern) => pattern.test(item.opinion))) {
+      throw new Error(`${label}: prohibited investment-judgement phrase`);
+    }
+    item.terms.forEach((term) => {
+      if (!term || ['id', 'name', 'full', 'desc'].some((field) => !nonEmpty(term[field]))) {
+        throw new Error(`${label}: invalid term`);
+      }
+    });
+  });
+}
+
 async function generateItems(messages, existingItems, fetchImpl = fetch) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return { configured: false, items: [] };
@@ -181,6 +222,7 @@ async function generateItems(messages, existingItems, fetchImpl = fetch) {
   const input = [
     '다음은 금융시장 텔레그램 채널에서 새로 수집한 원문이다.',
     '같은 사건을 다룬 메시지는 하나의 이슈로 묶고 중요하지 않은 잡음은 제외한다.',
+    `최대 ${MAX_ITEMS}개 이슈만 반환한다.`,
     '반드시 한국어로 작성한다.',
     'facts는 제공된 원문에 직접 있는 내용만 쓴다. 없는 숫자나 사실을 만들지 않는다.',
     'terms/notes는 개념과 배경 설명만 하며 전망을 만들지 않는다.',
@@ -226,13 +268,7 @@ async function generateItems(messages, existingItems, fetchImpl = fetch) {
   const parsed = JSON.parse(text);
   const allowedSources = new Set(messages.map((message) => message.key));
   const items = Array.isArray(parsed.items) ? parsed.items : [];
-
-  items.forEach((item) => {
-    item.sources.forEach((key) => {
-      if (!allowedSources.has(key)) throw new Error(`generated item referenced unknown source ${key}`);
-    });
-  });
-
+  validateGeneratedItems(items, allowedSources);
   return { configured: true, items };
 }
 
@@ -319,5 +355,6 @@ module.exports._test = {
   fetchChannel,
   sourceMap,
   extractOutputText,
+  validateGeneratedItems,
   OUTPUT_SCHEMA,
 };

@@ -35,12 +35,10 @@
     </div>
   </header>
 
-  <!-- 지구본 -->
   <div id="globe-wrap" class="globe-wrap">
     <canvas id="globe" class="globe"></canvas>
     <div id="pins" class="pins"></div>
 
-    <!-- 지역 팝업 — 마커에서 선으로 이어진다 -->
     <aside id="pop" class="pop" hidden>
       <div class="pop-head">
         <div>
@@ -58,14 +56,12 @@
     <p class="globe-hint" id="globe-hint">지구본을 끌어서 돌리고, 지역을 눌러 이슈를 보세요</p>
   </div>
 
-  <!-- 지역 목록 (뒷면 지역도 선택 가능) -->
   <aside class="regions" aria-label="지역 목록">
     <p class="regions-kicker">지역</p>
     <div class="regions-list" id="regions-list"></div>
   </aside>
 </div>
 
-<!-- 2단계: 상세 -->
 <div id="detail" class="detail" hidden>
   <article class="dt">
     <button type="button" id="dt-close" class="round-btn dt-close" aria-label="닫기">&#10005;</button>
@@ -79,7 +75,6 @@
   </article>
 </div>
 
-<!-- 새로고침 결과 -->
 <div id="rf" class="detail" hidden>
   <article class="dt rf-panel">
     <button type="button" id="rf-close" class="round-btn dt-close" aria-label="닫기">&#10005;</button>
@@ -99,8 +94,6 @@
 </div>
 
 <div id="toast" class="toast" role="status" hidden></div>
-
-<!-- ===== 템플릿 ===== -->
 
 <template id="tpl-cat">
   <button type="button" class="cat">
@@ -192,6 +185,8 @@
   </div>
 </template>
 
+<script src="data/channels.js"></script>
+<script src="safe-render.js"></script>
 <script src="app.js"></script>
 <script src="phase1-hardening.js"></script>
 </body>

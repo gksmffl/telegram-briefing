@@ -62,6 +62,7 @@ test('Gemini request uses JSON structured output with the briefing schema', () =
   assert.equal(body.contents[0].parts[0].text, 'hello');
   assert.equal(body.generationConfig.responseFormat.text.mimeType, 'APPLICATION_JSON');
   assert.equal(body.generationConfig.responseFormat.text.schema, OUTPUT_SCHEMA);
+  assert.ok(OUTPUT_SCHEMA.properties.items.items.properties.region.enum.includes('eu'));
 });
 
 test('LLM output schema stays strict-compatible while server validator enforces the item cap', () => {

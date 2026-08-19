@@ -29,11 +29,16 @@ jobs:
           node --check data/briefing-data.js
           node --check shared-storage.js
           node --check safe-render.js
+          node --check generated-data.js
           node --check data-validator.js
           node --check phase1-hardening.js
+          node --check on-demand-refresh.js
+          node --check api/refresh.js
           node --check tests/phase1-hardening.test.js
           node --check tests/shared-guardrails.test.js
           node --check tests/briefing-data.test.js
+          node --check tests/schema-contract.test.js
+          node --check tests/refresh-api.test.js
 
       - name: Run regression tests
         run: node --test tests/*.test.js

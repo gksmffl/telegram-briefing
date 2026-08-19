@@ -16,30 +16,6 @@
     try { localStorage.setItem(CURSOR_STORE, JSON.stringify(cursors || {})); } catch { /* best effort */ }
   }
 
-  function rowForUi(row) {
-    const ch = CHANNELS.find((channel) => channel.id === row.id) || { id: row.id, name: row.name || row.id, last: 0 };
-    return {
-      ch,
-      pending: false,
-      ok: row.ok,
-      count: row.count || 0,
-      preview: row.preview || '',
-      error: row.error || '',
-    };
-  }
-
-  function openPanel() {
-    const panel = document.getElementById('rf');
-    if (panel) panel.hidden = false;
-  }
-
-  function setRefreshNote(rows, total) {
-    const failed = rows.filter((row) => !row.ok).length;
-    const note = document.getElementById('rf-note');
-    if (!note) return;
-    note.textContent = `채널 ${rows.length}개 확인 완료 · 새 글 ${total}건${failed ? ` · 실패 ${failed}개` : ''} · 새 글이 있을 때만 Gemini를 호출해요.`;
-  }
-
   function updateGeneratedTimestamp() {
     if (!window.BRIEFING_GENERATED) return;
     const snapshot = window.BRIEFING_GENERATED.load();
@@ -58,10 +34,7 @@
     const btn = document.getElementById('btn-refresh');
     btn.classList.add('is-busy');
     btn.disabled = true;
-
-    const pendingRows = CHANNELS.map((ch) => ({ ch, pending: true, count: 0 }));
-    openPanel();
-    renderRefresh(pendingRows, false);
+    toast('새 Telegram 글을 확인하고 있어요.');
 
     try {
       const existing = window.BRIEFING_GENERATED ? window.BRIEFING_GENERATED.load() : { items: [] };
@@ -77,10 +50,8 @@
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload.ok) throw new Error(payload.error || `새로고침 API가 ${response.status}로 답했어요.`);
 
-      const rows = (payload.rows || []).map(rowForUi);
-      renderRefresh(rows, true);
-      const total = rows.filter((row) => row.ok).reduce((sum, row) => sum + row.count, 0);
-      setRefreshNote(rows, total);
+      const rows = Array.isArray(payload.rows) ? payload.rows : [];
+      const total = rows.filter((row) => row.ok).reduce((sum, row) => sum + (row.count || 0), 0);
 
       if (!payload.processed && total > 0) {
         toast('새 원문은 찾았지만 Gemini 설정이 아직 없어요. Vercel에 GEMINI_API_KEY를 설정해주세요.');
@@ -91,24 +62,16 @@
 
       if (payload.items && payload.items.length && window.BRIEFING_GENERATED) {
         window.BRIEFING_GENERATED.save({ sources: payload.sources || {}, items: payload.items });
-        toast(`새 이슈 ${payload.items.length}개를 정리했어요. 화면을 업데이트합니다.`);
-        setTimeout(() => location.reload(), 450);
+        toast(`새 이슈 ${payload.items.length}개를 지구본에 반영했어요.`);
+        setTimeout(() => location.reload(), 300);
         return;
       }
 
       if (total > 0) toast(`새 원문 ${total}건을 확인했지만 새 이슈로 정리할 내용은 없었어요.`);
       else toast('새로 올라온 글이 없어요.');
     } catch (error) {
-      const rows = CHANNELS.map((ch) => ({
-        ch,
-        pending: false,
-        ok: false,
-        count: 0,
-        error: error && error.message ? error.message : '새로고침에 실패했어요.',
-      }));
-      renderRefresh(rows, true);
-      setRefreshNote(rows, 0);
-      toast('새로고침에 실패했어요. 아래 사유를 확인해주세요.');
+      const message = error && error.message ? error.message : '알 수 없는 오류';
+      toast(`새로고침에 실패했어요: ${message.slice(0, 180)}`);
     } finally {
       btn.classList.remove('is-busy');
       btn.disabled = false;

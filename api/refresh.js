@@ -179,7 +179,7 @@ function geminiRequestBody(input) {
     generationConfig: {
       responseFormat: {
         text: {
-          mimeType: 'application/json',
+          mimeType: 'APPLICATION_JSON',
           schema: OUTPUT_SCHEMA,
         },
       },

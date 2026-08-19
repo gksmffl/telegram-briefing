@@ -10,7 +10,7 @@
   const SCHEMA_VERSION = '1.0.0';
   const REGIONS = Object.freeze(['us', 'kr', 'cn', 'jp']);
   const CATEGORIES = Object.freeze(['rate', 'fx', 'stock', 'corp']);
-  const DIRECTIONS = Object.freeze(['up', 'down', 'flat']);
+  const DIRECTIONS = Object.freeze(['up', 'down', 'flat', 'neutral']);
   const SOURCE_KEY = /^[A-Za-z0-9_]+\/\d+$/;
   const UNSAFE_HTML = /<(?!\/?b\s*>)[^>]+>/i;
 
@@ -89,7 +89,7 @@
       if (!isNonEmptyString(item.metric.value) || !isNonEmptyString(item.metric.sub)) {
         errors.push(`${label}: metric.value and metric.sub required`);
       }
-      if (!DIRECTIONS.includes(item.metric.dir)) errors.push(`${label}: metric.dir must be up, down, or flat`);
+      if (!DIRECTIONS.includes(item.metric.dir)) errors.push(`${label}: metric.dir must be up, down, flat, or neutral`);
     }
 
     if (!Array.isArray(item.facts) || item.facts.length === 0) {

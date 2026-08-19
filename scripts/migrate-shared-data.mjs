@@ -110,6 +110,21 @@ function stableJson(value) {
   return JSON.stringify(value, null, 2);
 }
 
+function canonicalize(value) {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (!value || typeof value !== 'object') return value;
+
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, canonicalize(value[key])]),
+  );
+}
+
+function equivalent(a, b) {
+  return JSON.stringify(canonicalize(a)) === JSON.stringify(canonicalize(b));
+}
+
 function mergeSources(primary, secondary) {
   const merged = { ...primary };
   for (const [key, value] of Object.entries(secondary)) {
@@ -117,9 +132,9 @@ function mergeSources(primary, secondary) {
       merged[key] = value;
       continue;
     }
-    const a = JSON.stringify(merged[key]);
-    const b = JSON.stringify(value);
-    if (a !== b) throw new Error(`Source ${key} differs between globe and map/card data`);
+    if (!equivalent(merged[key], value)) {
+      throw new Error(`Source ${key} differs between globe and map/card data`);
+    }
   }
   return merged;
 }

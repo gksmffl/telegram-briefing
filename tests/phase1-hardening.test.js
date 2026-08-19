@@ -134,16 +134,52 @@ test('refresh persists newest Telegram id only after the current refresh finishe
       window.cursorAtRefreshStart = CHANNELS[0].last;
       await window.fetch('https://r.jina.ai/https://t.me/s/foo');
       window.cursorAfterFetchBeforeCommit = CHANNELS[0].last;
+      return 'refresh-result';
     }
   `, context);
 
   vm.runInContext(read('phase1-hardening.js'), context, { filename: 'phase1-hardening.js' });
-  await vm.runInContext('refresh()', context);
+  const result = await vm.runInContext('refresh()', context);
 
+  assert.equal(result, 'refresh-result');
   assert.equal(window.cursorAtRefreshStart, 11);
   assert.equal(window.cursorAfterFetchBeforeCommit, 11);
   assert.equal(vm.runInContext('CHANNELS[0].last', context), 13);
 
   const saved = JSON.parse(storage.getItem('briefing:telegram-cursors:v1'));
   assert.equal(saved.foo, 13);
+});
+
+test('refresh wrapper does not swallow native refresh errors', async () => {
+  const storage = memoryStorage();
+  const window = {
+    BRIEFING_CHANNELS: [{ id: 'foo', name: 'Foo Research', last: 10 }],
+    fetch: async () => ({ ok: false }),
+  };
+
+  const context = vm.createContext({
+    window,
+    localStorage: storage,
+    Map,
+    Number,
+    Array,
+    String,
+    RegExp,
+    JSON,
+    Error,
+  });
+
+  vm.runInContext(`
+    const CHANNELS = [{ id: 'foo', last: 10 }];
+    async function refresh() {
+      throw new Error('refresh failed');
+    }
+  `, context);
+
+  vm.runInContext(read('phase1-hardening.js'), context, { filename: 'phase1-hardening.js' });
+
+  await assert.rejects(
+    vm.runInContext('refresh()', context),
+    /refresh failed/,
+  );
 });

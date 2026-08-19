@@ -1,0 +1,33 @@
+name: Refactor rich text
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply explicit renderer refactor
+        run: node scripts/refactor-rich-text.mjs
+      - name: Validate refactored scripts
+        run: |
+          node --check app.js
+          node --check v1-map/app.js
+          ! grep -R "\.innerHTML[[:space:]]*=" app.js v1-map/app.js
+      - name: Package refactored apps
+        run: |
+          mkdir -p refactored/v1-map
+          cp app.js refactored/app.js
+          cp v1-map/app.js refactored/v1-map/app.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: explicit-rich-text-apps
+          path: refactored
+          if-no-files-found: error

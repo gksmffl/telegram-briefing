@@ -8,7 +8,6 @@
 </head>
 <body class="mode-map">
 
-<!-- ===== 공용 상단 바 (지구본 보기와 동일한 형식) ===== -->
 <header class="app-top">
   <div class="brand">
     <span class="brand-dot" aria-hidden="true"></span>
@@ -34,7 +33,6 @@
   </div>
 </header>
 
-<!-- 범례 — 상단 바 아랫줄 우측 -->
 <div class="legend" id="legend">
   <span class="lg lg-event">사건</span>
   <span class="lg lg-source">원문</span>
@@ -42,9 +40,6 @@
   <span class="lg lg-opinion">AI 의견</span>
 </div>
 
-<!-- ===================================================================
-     레이아웃 A — 지도. 사건을 중심에 두고 원문·개념·의견이 가지로 뻗는다
-     =================================================================== -->
 <div id="view-map" class="view-map">
   <div class="map-stage">
     <svg id="links" class="links" aria-hidden="true"></svg>
@@ -53,7 +48,6 @@
   <p class="map-hint">박스를 누르면 원문·설명이 열려요<span class="hint-mobile"> · 좁은 화면에서는 좌우로 밀어 보세요</span></p>
 </div>
 
-<!-- 상세 패널 -->
 <div id="panel" class="panel" hidden>
   <div class="pn" role="dialog" aria-modal="true">
     <button type="button" id="pn-close" class="pn-close" aria-label="닫기">&#10005;</button>
@@ -67,7 +61,6 @@
   </div>
 </div>
 
-<!-- 작은 팝업 (원문 · 개념 · 배경 · 의견) -->
 <div id="pop" class="pop" hidden>
   <div class="pop-in" role="dialog" aria-modal="true">
     <button type="button" id="pop-close" class="pn-close" aria-label="닫기">&#10005;</button>
@@ -84,9 +77,6 @@
   </div>
 </div>
 
-<!-- ===================================================================
-     레이아웃 B — 카드 (토스 톤)
-     =================================================================== -->
 <div id="view-toss" class="view-toss">
   <div class="phone">
     <header class="top">
@@ -106,7 +96,6 @@
   </div>
 </div>
 
-<!-- 새로고침 결과 -->
 <div id="rf" class="rf-back" hidden>
   <article class="rf-panel">
     <button type="button" id="rf-close" class="pn-close rf-close" aria-label="닫기">&#10005;</button>
@@ -126,8 +115,6 @@
 </div>
 
 <div id="toast" class="toast" role="status" hidden></div>
-
-<!-- ===== 템플릿 ===== -->
 
 <template id="tpl-rf-row">
   <div class="rf-row">
@@ -228,6 +215,8 @@
   </div>
 </template>
 
+<script src="../data/channels.js"></script>
+<script src="../safe-render.js"></script>
 <script src="app.js"></script>
 <script src="../phase1-hardening.js"></script>
 </body>

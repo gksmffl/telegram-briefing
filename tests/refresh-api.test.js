@@ -7,8 +7,11 @@ const {
   fetchChannel,
   sourceMap,
   extractOutputText,
+  geminiUrl,
+  geminiRequestBody,
   validateGeneratedItems,
   OUTPUT_SCHEMA,
+  DEFAULT_MODEL,
 } = refreshApi._test;
 
 test('Telegram preview parser extracts source id, time and readable text', () => {
@@ -45,11 +48,20 @@ test('sourceMap keeps exact Telegram source identity', () => {
   assert.deepEqual(sources['foo/12'], { ch: 'foo', id: 12, at: 'now', text: 'source text' });
 });
 
-test('Responses API output text can be extracted from message content', () => {
+test('Gemini output text can be extracted from candidate parts', () => {
   const text = extractOutputText({
-    output: [{ type: 'message', content: [{ type: 'output_text', text: '{"items":[]}' }] }],
+    candidates: [{ content: { parts: [{ text: '{"items":[]}' }] } }],
   });
   assert.equal(text, '{"items":[]}');
+});
+
+test('Gemini request uses JSON structured output with the briefing schema', () => {
+  const body = geminiRequestBody('hello');
+  assert.equal(DEFAULT_MODEL, 'gemini-2.5-flash');
+  assert.match(geminiUrl(), /gemini-2\.5-flash:generateContent$/);
+  assert.equal(body.contents[0].parts[0].text, 'hello');
+  assert.equal(body.generationConfig.responseMimeType, 'application/json');
+  assert.equal(body.generationConfig.responseJsonSchema, OUTPUT_SCHEMA);
 });
 
 test('LLM output schema stays strict-compatible while server validator enforces the item cap', () => {

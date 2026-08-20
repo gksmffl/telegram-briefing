@@ -1,0 +1,152 @@
+/* Design enhancement layer for the globe view.
+ * Kept separate from style.css so the visual pass is easy to review or revert.
+ */
+
+.stage {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(107, 164, 255, .07) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 74% 28%, rgba(255, 255, 255, .055) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 44% 78%, rgba(118, 139, 216, .06) 0 1px, transparent 1.5px),
+    radial-gradient(ellipse 76% 58% at 29% 8%, rgba(42, 91, 178, .38), transparent 64%),
+    radial-gradient(ellipse 62% 54% at 84% 88%, rgba(84, 59, 158, .25), transparent 62%),
+    linear-gradient(164deg, #0d1730 0%, #081020 52%, #050913 100%);
+  background-size: 124px 124px, 178px 178px, 216px 216px, auto, auto, auto;
+}
+
+.globe-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 48%, transparent 0 24%, rgba(14, 29, 58, .035) 48%, rgba(3, 7, 17, .22) 78%, rgba(2, 5, 12, .48) 100%);
+  z-index: 1;
+}
+
+.globe,
+.pins,
+.pop,
+.globe-hint {
+  z-index: 2;
+}
+
+.pin {
+  transform: translate(-50%, -174%);
+  min-width: 76px;
+  gap: 2px;
+  padding: 9px 15px 8px;
+  border: 1px solid rgba(172, 224, 255, .28);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(14, 31, 61, .82), rgba(7, 17, 37, .74));
+  box-shadow:
+    0 10px 25px rgba(0, 7, 24, .3),
+    inset 0 1px 0 rgba(255, 255, 255, .06);
+  backdrop-filter: blur(10px) saturate(125%);
+  transition: background .18s, border-color .18s, transform .18s, box-shadow .18s;
+}
+
+.pin::after {
+  height: 20px;
+  width: 1.5px;
+  background: linear-gradient(180deg, rgba(143, 220, 255, .86), rgba(143, 220, 255, .08) 72%, transparent);
+}
+
+.pin:hover,
+.pin:focus-visible {
+  transform: translate(-50%, -174%) translateY(-4px) scale(1.035);
+  background: linear-gradient(180deg, rgba(29, 61, 106, .94), rgba(12, 29, 58, .9));
+  border-color: rgba(157, 226, 255, .78);
+  box-shadow:
+    0 14px 32px rgba(0, 9, 30, .38),
+    0 0 22px rgba(105, 204, 255, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .1);
+}
+
+.pin.is-on {
+  background: linear-gradient(180deg, rgba(102, 73, 15, .94), rgba(57, 38, 8, .9));
+  border-color: rgba(255, 217, 119, .78);
+  box-shadow:
+    0 14px 34px rgba(0, 7, 24, .34),
+    0 0 26px rgba(255, 209, 102, .12),
+    inset 0 1px 0 rgba(255, 244, 196, .14);
+}
+
+.pin-name {
+  font-size: 15px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -.025em;
+  color: #f4f9ff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .32);
+}
+
+.pin-en {
+  font-family: var(--num);
+  font-size: 8.5px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: rgba(182, 225, 251, .56);
+}
+
+.pin-count {
+  margin-top: 1px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: rgba(234, 244, 255, .68);
+}
+
+.regions {
+  padding: 17px 17px 13px;
+  border-color: rgba(154, 204, 255, .15);
+  background: linear-gradient(180deg, rgba(11, 24, 49, .72), rgba(8, 15, 32, .66));
+  box-shadow: 0 18px 46px rgba(0, 6, 20, .2), inset 0 1px 0 rgba(255, 255, 255, .035);
+  backdrop-filter: blur(16px) saturate(120%);
+}
+
+.rg {
+  min-width: 204px;
+  padding: 10px 11px;
+}
+
+.rg-name { font-size: 14px; }
+.rg-en { font-size: 9.8px; }
+.rg-count { font-size: 12.5px; }
+
+.globe-hint {
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-radius: 999px;
+  background: rgba(4, 10, 24, .28);
+  backdrop-filter: blur(8px);
+  color: rgba(232, 241, 251, .57);
+}
+
+@media (max-width: 1000px) {
+  .pin {
+    min-width: 68px;
+    padding: 8px 12px 7px;
+  }
+
+  .pin-name { font-size: 14px; }
+  .pin-en { font-size: 8px; }
+  .regions { padding: 11px 11px 7px; }
+  .rg { min-width: 140px; padding: 8px 9px; }
+}
+
+@media (max-width: 560px) {
+  .pin {
+    min-width: 62px;
+    padding: 7px 10px 6px;
+    transform: translate(-50%, -169%);
+  }
+
+  .pin:hover,
+  .pin:focus-visible {
+    transform: translate(-50%, -169%) translateY(-3px) scale(1.025);
+  }
+
+  .pin-name { font-size: 13.5px; }
+  .pin-en { display: none; }
+  .pin-count { font-size: 10px; }
+}

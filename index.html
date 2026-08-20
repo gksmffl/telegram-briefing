@@ -14,3 +14,185 @@
 
   <header class="top">
     <div class="brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span class="brand-name">Personalized Telegram Briefing</span>
+    </div>
+
+    <div class="stats">
+      <span class="stat"><span class="stat-k">채널</span><span class="stat-v">7</span></span>
+      <span class="stat"><span class="stat-k">이슈</span><span class="stat-v" id="stat-issues">0</span></span>
+      <span class="stat"><span class="stat-k">정리</span><span class="stat-v" id="stat-snap">—</span></span>
+    </div>
+
+    <div class="tools">
+      <div class="seg" role="group" aria-label="보기 전환">
+        <button type="button" class="seg-btn is-on" data-view="globe">지구본</button>
+        <a class="seg-btn" href="v1-map/index.html#map">지도</a>
+        <a class="seg-btn" href="v1-map/index.html#card">카드</a>
+      </div>
+      <button type="button" id="btn-refresh" class="tool-btn">
+        <span class="rf-icon" aria-hidden="true">&#8635;</span>
+        <span class="rf-label">새로고침</span>
+      </button>
+    </div>
+  </header>
+
+  <div id="globe-wrap" class="globe-wrap">
+    <canvas id="globe" class="globe"></canvas>
+    <div id="pins" class="pins"></div>
+
+    <aside id="pop" class="pop" hidden>
+      <div class="pop-head">
+        <div>
+          <p class="pop-kicker" id="pop-en">—</p>
+          <h2 class="pop-title" id="pop-region">—</h2>
+        </div>
+        <button type="button" id="pop-close" class="round-btn" aria-label="닫기">&#10005;</button>
+      </div>
+      <div class="pop-body">
+        <nav class="cats" id="cats" aria-label="카테고리"></nav>
+        <div class="heads" id="heads"></div>
+      </div>
+    </aside>
+
+    <p class="globe-hint" id="globe-hint">지구본을 끌어서 돌리고, 지역을 눌러 이슈를 보세요</p>
+  </div>
+
+  <aside class="regions" aria-label="지역 목록">
+    <p class="regions-kicker">지역</p>
+    <div class="regions-list" id="regions-list"></div>
+  </aside>
+</div>
+
+<div id="detail" class="detail" hidden>
+  <article class="dt">
+    <button type="button" id="dt-close" class="round-btn dt-close" aria-label="닫기">&#10005;</button>
+    <p class="dt-tag"></p>
+    <h2 class="dt-title"></h2>
+    <div class="dt-metric">
+      <span class="dt-value"></span>
+      <span class="dt-sub"></span>
+    </div>
+    <div class="dt-body"></div>
+  </article>
+</div>
+
+<div id="rf" class="detail" hidden>
+  <article class="dt rf-panel">
+    <button type="button" id="rf-close" class="round-btn dt-close" aria-label="닫기">&#10005;</button>
+    <p class="dt-tag">온디맨드 새로고침</p>
+    <h2 class="dt-title" id="rf-title">새 글이 있을 때만 AI가 정리해요</h2>
+    <p class="rf-note" id="rf-note"></p>
+    <div class="rf-warn">
+      <p><b>평소에는 Telegram도 LLM도 호출하지 않아요.</b></p>
+      <p>새로고침 버튼을 누르면 서버가 Telegram 새 글을 확인하고, 새 글이 있을 때만 LLM을 호출해 사실·개념·배경·의견 카드로 정리합니다.</p>
+      <p class="rf-proxy">API 키는 브라우저에 저장하지 않고 Vercel 서버 환경변수에서만 사용합니다.</p>
+    </div>
+    <div id="rf-list" class="rf-list"></div>
+  </article>
+</div>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<template id="tpl-cat">
+  <button type="button" class="cat">
+    <span class="cat-bar" aria-hidden="true"></span>
+    <span class="cat-main">
+      <span class="cat-name"></span>
+      <span class="cat-count"></span>
+    </span>
+  </button>
+</template>
+
+<template id="tpl-head">
+  <button type="button" class="head">
+    <span class="head-top">
+      <span class="head-cat"></span>
+      <span class="head-imp" aria-hidden="true"></span>
+    </span>
+    <span class="head-title"></span>
+    <span class="head-metric">
+      <span class="head-value"></span>
+      <span class="head-msub"></span>
+    </span>
+    <span class="head-peek" hidden></span>
+    <span class="head-foot"></span>
+  </button>
+</template>
+
+<template id="tpl-detail-body">
+  <div class="dt-secs">
+    <section class="dt-sec">
+      <h3 class="dt-head">사실</h3>
+      <ul class="dt-facts"></ul>
+      <p class="dt-src-head"></p>
+      <div class="dt-src"></div>
+    </section>
+    <section class="dt-sec dt-sec-ai">
+      <h3 class="dt-head">이 말이 무슨 뜻이냐면</h3>
+      <p class="dt-note">AI가 붙인 설명이에요. 실제 뉴스가 아니에요.</p>
+      <div class="dt-terms"></div>
+      <p class="dt-terms-empty" hidden>이 이슈의 용어는 모두 필요 없다고 하셨어요.</p>
+    </section>
+    <section class="dt-sec dt-sec-ai">
+      <h3 class="dt-head">알아두면 좋은 것</h3>
+      <p class="dt-note">AI가 붙인 설명이에요. 실제 뉴스가 아니에요.</p>
+      <ul class="dt-notes"></ul>
+    </section>
+    <section class="dt-sec dt-sec-op">
+      <h3 class="dt-head">제 생각은</h3>
+      <p class="dt-note">AI 의견이에요. 사실도 아니고 투자 판단도 아니에요.</p>
+      <p class="dt-opinion"></p>
+    </section>
+  </div>
+</template>
+
+<template id="tpl-term">
+  <div class="term">
+    <p class="term-name"></p>
+    <p class="term-desc"></p>
+    <div class="term-feed">
+      <button type="button" class="feed-btn" data-vote="up">👍 도움됐어요</button>
+      <button type="button" class="feed-btn" data-vote="down">👎 필요 없어요</button>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-source">
+  <div class="src-item">
+    <button type="button" class="src-head">
+      <span class="src-ch"></span>
+      <span class="src-at"></span>
+      <span class="src-open">원문 보기</span>
+    </button>
+    <div class="src-raw" hidden>
+      <pre class="src-text"></pre>
+      <p class="src-trunc" hidden>원문이 길어 앞부분만 옮겼어요. 전문은 아래 링크에서 볼 수 있어요.</p>
+      <a class="src-link" target="_blank" rel="noopener">텔레그램에서 원문 열기 &rarr;</a>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-rf-row">
+  <div class="rf-row">
+    <div class="rf-row-top">
+      <span class="rf-ch"></span>
+      <span class="rf-new"></span>
+    </div>
+    <p class="rf-preview"></p>
+    <a class="rf-link" target="_blank" rel="noopener">채널 열기 &rarr;</a>
+  </div>
+</template>
+
+<script src="data/channels.js"></script>
+<script src="shared-storage.js"></script>
+<script src="safe-render.js"></script>
+<script src="data/briefing-data.js"></script>
+<script src="generated-data.js"></script>
+<script src="app.js"></script>
+<script src="design-enhancement.js"></script>
+<script src="data-validator.js"></script>
+<script src="phase1-hardening.js"></script>
+<script src="on-demand-refresh.js"></script>
+</body>
+</html>

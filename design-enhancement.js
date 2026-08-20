@@ -4,6 +4,23 @@
 (() => {
   'use strict';
 
+  // Small secondary land masses make the silhouette read closer to a real globe
+  // without changing the main data/interaction model.
+  LAND.push(
+    { tone: 'temperate', pts: [[-8, 50], [-6, 55], [-4, 59], [-1, 58], [1, 53], [-2, 50]] },
+    { tone: 'temperate', pts: [[-10, 52], [-9, 55], [-7, 56], [-6, 53], [-8, 51]] },
+    { tone: 'temperate', pts: [[8, 44], [10, 47], [13, 47], [15, 43], [18, 40], [16, 38], [13, 41]] },
+    { tone: 'desert', pts: [[67, 24], [73, 31], [79, 30], [82, 26], [86, 22], [82, 15], [78, 8], [75, 9], [72, 18]] },
+    { tone: 'tropical', pts: [[94, 20], [99, 18], [103, 12], [107, 10], [108, 5], [104, 1], [100, 5], [98, 11]] },
+    { tone: 'tropical', pts: [[95, 5], [101, 5], [106, 1], [112, -3], [118, -4], [116, -8], [108, -7], [101, -4]] },
+    { tone: 'tropical', pts: [[119, 1], [124, 1], [127, -3], [125, -6], [120, -4]] },
+    { tone: 'tropical', pts: [[47, -13], [50, -16], [50, -24], [47, -25], [45, -20]] },
+    { tone: 'temperate', pts: [[166, -34], [173, -36], [176, -40], [173, -42], [168, -39]] },
+    { tone: 'temperate', pts: [[166, -43], [171, -44], [174, -47], [170, -48], [167, -46]] },
+    { tone: 'temperate', pts: [[-84, 10], [-82, 13], [-80, 10], [-78, 8], [-79, 6], [-82, 7]] },
+    { tone: 'temperate', pts: [[-73, 20], [-69, 22], [-65, 20], [-68, 18], [-72, 18]] }
+  );
+
   const originalBuildPins = buildPins;
 
   buildPins = function enhancedBuildPins() {

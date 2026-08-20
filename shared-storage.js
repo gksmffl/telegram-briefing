@@ -7,6 +7,81 @@
 (() => {
   'use strict';
 
+  function installTypography() {
+    if (typeof document === 'undefined' || !document.head) return;
+    if (document.getElementById('briefing-kopubworld-typography')) return;
+
+    const style = document.createElement('style');
+    style.id = 'briefing-kopubworld-typography';
+    style.textContent = `
+      /*
+       * KoPubWorld local-font mapping.
+       * Keep this local() only until web-font/server embedding approval is confirmed.
+       */
+      @font-face {
+        font-family: 'KoPubWorld Dotum Local';
+        src: local('KoPubWorldDotum_Pro Light'), local('KoPubWorld돋움체_Pro Light');
+        font-style: normal;
+        font-weight: 300;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'KoPubWorld Dotum Local';
+        src: local('KoPubWorldDotum_Pro Medium'), local('KoPubWorld돋움체_Pro Medium');
+        font-style: normal;
+        font-weight: 400 600;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'KoPubWorld Dotum Local';
+        src: local('KoPubWorldDotum_Pro Bold'), local('KoPubWorld돋움체_Pro Bold');
+        font-style: normal;
+        font-weight: 700 900;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'KoPubWorld Batang Local';
+        src: local('KoPubWorldBatang_Pro Light'), local('KoPubWorld바탕체_Pro Light');
+        font-style: normal;
+        font-weight: 300;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'KoPubWorld Batang Local';
+        src: local('KoPubWorldBatang_Pro Medium'), local('KoPubWorld바탕체_Pro Medium');
+        font-style: normal;
+        font-weight: 400 600;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'KoPubWorld Batang Local';
+        src: local('KoPubWorldBatang_Pro Bold'), local('KoPubWorld바탕체_Pro Bold');
+        font-style: normal;
+        font-weight: 700 900;
+        font-display: swap;
+      }
+
+      :root {
+        --font-ui: 'KoPubWorld Dotum Local', -apple-system, BlinkMacSystemFont,
+                   'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+        --font-editorial: 'KoPubWorld Batang Local', 'Nanum Myeongjo', serif;
+      }
+
+      html, body,
+      button, input, textarea, select {
+        font-family: var(--font-ui) !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  installTypography();
+
   if (typeof window === 'undefined' || typeof Storage === 'undefined' || !window.localStorage) return;
 
   const GROUPS = [

@@ -7,6 +7,14 @@
 (() => {
   'use strict';
 
+  if (typeof document !== 'undefined' && document.head && !document.getElementById('briefing-typography')) {
+    const link = document.createElement('link');
+    link.id = 'briefing-typography';
+    link.rel = 'stylesheet';
+    link.href = '/typography.css';
+    document.head.appendChild(link);
+  }
+
   if (typeof window === 'undefined' || typeof Storage === 'undefined' || !window.localStorage) return;
 
   const GROUPS = [

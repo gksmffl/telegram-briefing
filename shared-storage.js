@@ -9,67 +9,77 @@
 
   function installTypography() {
     if (typeof document === 'undefined' || !document.head) return;
-    if (document.getElementById('briefing-kopubworld-typography')) return;
+    if (document.getElementById('briefing-pretendard-typography')) return;
 
     const style = document.createElement('style');
-    style.id = 'briefing-kopubworld-typography';
+    style.id = 'briefing-pretendard-typography';
     style.textContent = `
-      /*
-       * KoPubWorld local-font mapping.
-       * Keep this local() only until web-font/server embedding approval is confirmed.
-       */
       @font-face {
-        font-family: 'KoPubWorld Dotum Local';
-        src: local('KoPubWorldDotum_Pro Light'), local('KoPubWorld돋움체_Pro Light');
-        font-style: normal;
+        font-family: 'Pretendard';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Thin.woff2') format('woff2');
+        font-weight: 100;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'Pretendard';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraLight.woff2') format('woff2');
+        font-weight: 200;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'Pretendard';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Light.woff2') format('woff2');
         font-weight: 300;
         font-display: swap;
       }
 
       @font-face {
-        font-family: 'KoPubWorld Dotum Local';
-        src: local('KoPubWorldDotum_Pro Medium'), local('KoPubWorld돋움체_Pro Medium');
-        font-style: normal;
-        font-weight: 400 600;
+        font-family: 'Pretendard';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2') format('woff2');
+        font-weight: 400;
         font-display: swap;
       }
 
       @font-face {
-        font-family: 'KoPubWorld Dotum Local';
-        src: local('KoPubWorldDotum_Pro Bold'), local('KoPubWorld돋움체_Pro Bold');
-        font-style: normal;
-        font-weight: 700 900;
+        font-family: 'Pretendard';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2') format('woff2');
+        font-weight: 500;
         font-display: swap;
       }
 
       @font-face {
-        font-family: 'KoPubWorld Batang Local';
-        src: local('KoPubWorldBatang_Pro Light'), local('KoPubWorld바탕체_Pro Light');
-        font-style: normal;
-        font-weight: 300;
+        font-family: 'Pretendard';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2') format('woff2');
+        font-weight: 600;
         font-display: swap;
       }
 
       @font-face {
-        font-family: 'KoPubWorld Batang Local';
-        src: local('KoPubWorldBatang_Pro Medium'), local('KoPubWorld바탕체_Pro Medium');
-        font-style: normal;
-        font-weight: 400 600;
+        font-family: 'Pretendard';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2') format('woff2');
+        font-weight: 700;
         font-display: swap;
       }
 
       @font-face {
-        font-family: 'KoPubWorld Batang Local';
-        src: local('KoPubWorldBatang_Pro Bold'), local('KoPubWorld바탕체_Pro Bold');
-        font-style: normal;
-        font-weight: 700 900;
+        font-family: 'Pretendard';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2') format('woff2');
+        font-weight: 800;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: 'Pretendard';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Black.woff2') format('woff2');
+        font-weight: 900;
         font-display: swap;
       }
 
       :root {
-        --font-ui: 'KoPubWorld Dotum Local', -apple-system, BlinkMacSystemFont,
+        --font-ui: 'Pretendard', -apple-system, BlinkMacSystemFont,
                    'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-        --font-editorial: 'KoPubWorld Batang Local', 'Nanum Myeongjo', serif;
       }
 
       html, body,

@@ -80,6 +80,8 @@
       :root {
         --font-ui: 'Pretendard', -apple-system, BlinkMacSystemFont,
                    'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+        --num: var(--font-ui);
+        --m-num: var(--font-ui);
       }
 
       html, body,

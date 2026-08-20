@@ -15,6 +15,67 @@
     document.head.appendChild(link);
   }
 
+  function installRound2UiFeedback() {
+    if (typeof document === 'undefined') return;
+
+    if (document.head && !document.getElementById('briefing-round2-ui')) {
+      const style = document.createElement('style');
+      style.id = 'briefing-round2-ui';
+      style.textContent = `
+        /* East Asia pins overlap at dashboard scale. Korea is the default top card. */
+        #pins .pin { z-index: 10; }
+        #pins .pin[data-region="cn"] { z-index: 40; }
+        #pins .pin[data-region="jp"] { z-index: 50; }
+        #pins .pin[data-region="kr"] { z-index: 60; }
+
+        /* Any region the user is pointing at or has selected comes to the front. */
+        #pins .pin.is-on { z-index: 110 !important; }
+        #pins .pin:hover,
+        #pins .pin:focus-visible,
+        #pins .pin:active { z-index: 120 !important; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const normalizeLabel = (node) => {
+      if (!node || node.nodeType !== 1) return;
+      const candidates = [];
+      if (node.matches && node.matches('.feed-btn, .know-btn')) candidates.push(node);
+      if (node.querySelectorAll) candidates.push(...node.querySelectorAll('.feed-btn, .know-btn'));
+
+      candidates.forEach((button) => {
+        const current = button.textContent || '';
+        const normalized = current
+          .replace(/도움됐어요/g, '도움 됐어요')
+          .replace(/필요없어요/g, '필요 없어요');
+        if (normalized !== current) button.textContent = normalized;
+      });
+    };
+
+    const normalizeTemplates = () => {
+      document.querySelectorAll('template').forEach((template) => {
+        if (template.content) normalizeLabel(template.content.firstElementChild || template.content);
+        if (template.content && template.content.querySelectorAll) {
+          template.content.querySelectorAll('.feed-btn, .know-btn').forEach(normalizeLabel);
+        }
+      });
+    };
+
+    normalizeLabel(document.body);
+    normalizeTemplates();
+
+    if (typeof MutationObserver !== 'undefined' && document.body) {
+      const observer = new MutationObserver((records) => {
+        records.forEach((record) => {
+          record.addedNodes.forEach((node) => normalizeLabel(node));
+        });
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+  }
+
+  installRound2UiFeedback();
+
   if (typeof window === 'undefined' || typeof Storage === 'undefined' || !window.localStorage) return;
 
   const GROUPS = [

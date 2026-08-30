@@ -32,26 +32,77 @@ jobs:
 
           node - <<'NODE'
           const fs = require('fs');
-          const path = 'data/briefing-snapshot-2026-08-31.json';
-          const payload = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const snapshotPath = 'data/briefing-snapshot-2026-08-31.json';
+          const payload = JSON.parse(fs.readFileSync(snapshotPath, 'utf8'));
           if (!payload.ok) throw new Error(payload.error || 'snapshot request failed');
           if (!payload.processed) throw new Error(payload.reason || 'snapshot was not processed');
           if (!payload.llmConfigured) throw new Error('Gemini is not configured in production');
           if (!Array.isArray(payload.items) || payload.items.length === 0) {
             throw new Error('No generated briefing items were returned');
           }
+
           payload.snapshotAt = '2026-08-31';
-          fs.writeFileSync(path, JSON.stringify(payload, null, 2) + '\n');
-          console.log(`Generated ${payload.items.length} issues from ${Object.keys(payload.sources || {}).length} source messages.`);
+          fs.writeFileSync(snapshotPath, JSON.stringify(payload, null, 2) + '\n');
+
+          const terms = {};
+          const issues = [];
+          const cards = [];
+          for (const item of payload.items) {
+            const cardTerms = [];
+            const termIds = [];
+            for (const term of item.terms || []) {
+              if (!term || !term.id) continue;
+              terms[term.id] = {
+                name: term.name,
+                full: term.full,
+                desc: term.desc,
+              };
+              termIds.push(term.id);
+              cardTerms.push({ ...term });
+            }
+            issues.push({ ...item, terms: termIds });
+            cards.push({ ...item, terms: cardTerms });
+          }
+
+          const canonical = {
+            snapshotAt: '2026-08-31',
+            terms,
+            sources: payload.sources || {},
+            issues,
+            cards,
+          };
+
+          const dataJs = `/* Canonical briefing snapshot — 2026-08-31.\n * Generated from the live Telegram + Gemini refresh pipeline.\n * v0.5 intentionally replaces the legacy 2026-08-12~13 prototype dataset.\n */\n(() => {\n  'use strict';\n  const data = ${JSON.stringify(canonical, null, 2)};\n  window.BRIEFING_DATA = Object.freeze({\n    snapshotAt: data.snapshotAt,\n    terms: data.terms,\n    sources: data.sources,\n    issues: data.issues,\n    cards: data.cards,\n  });\n})();\n`;
+          fs.writeFileSync('data/briefing-data.js', dataJs);
+
+          const rowsById = new Map((payload.rows || []).map((row) => [row.id, row]));
+          const orderedIds = [
+            'yieldnspread',
+            'deandatbond',
+            'hanwhastrategy',
+            'redbirdstock',
+            'daishinstrategy',
+            'aetherjapanresearch',
+            'rafikiresearch',
+          ];
+          const channels = orderedIds.map((id) => ({
+            id,
+            name: (rowsById.get(id) || {}).name || id,
+            last: Number((payload.cursors || {})[id]) || 0,
+          }));
+          const channelsJs = `(() => {\n  'use strict';\n  // v0.5 cursor baseline: all posts through the 2026-08-31 snapshot are already represented.\n  const channels = ${JSON.stringify(channels, null, 2)};\n  const frozen = Object.freeze(channels.map((channel) => Object.freeze({ ...channel })));\n  if (typeof window !== 'undefined') window.BRIEFING_CHANNELS = frozen;\n  if (typeof module !== 'undefined' && module.exports) module.exports = frozen;\n})();\n`;
+          fs.writeFileSync('data/channels.js', channelsJs);
+
+          console.log(`Promoted ${payload.items.length} current issues from ${Object.keys(payload.sources || {}).length} source messages.`);
           NODE
 
-      - name: Commit snapshot to v0.5 branch
+      - name: Commit v0.5 snapshot baseline
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- data/briefing-snapshot-2026-08-31.json
+          git add -- data/briefing-snapshot-2026-08-31.json data/briefing-data.js data/channels.js
           git diff --cached --quiet && exit 0
-          git commit -m 'Add 2026-08-31 live briefing snapshot'
+          git commit -m 'Replace legacy briefing data with 2026-08-31 snapshot'
           git push origin HEAD:agent/v0.5-round2-feedback

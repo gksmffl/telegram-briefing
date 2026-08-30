@@ -1,0 +1,39 @@
+name: Mobile Globe Sheet
+
+on:
+  push:
+    branches:
+      - agent/v0.5-round2-feedback
+    paths:
+      - design-enhancement.css
+      - style.css
+      - app.js
+      - index.html
+      - data/briefing-data.js
+      - e2e/mobile-globe-sheet.spec.js
+      - .github/workflows/mobile-globe-sheet.yml
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-sheet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+      - name: Verify runner Chrome
+        run: google-chrome --version
+      - name: Verify mobile globe sheet
+        run: npx playwright test e2e/mobile-globe-sheet.spec.js
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-globe-sheet-report
+          path: playwright-report
+          if-no-files-found: ignore

@@ -74,7 +74,63 @@
     }
   }
 
+  function formatBriefingTimestamp(value, includeTime) {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+
+    const parts = new Intl.DateTimeFormat('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      month: 'numeric',
+      day: 'numeric',
+      ...(includeTime ? { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' } : {}),
+    }).formatToParts(date);
+
+    const part = (type) => parts.find((entry) => entry.type === type)?.value;
+    const month = part('month');
+    const day = part('day');
+    if (!month || !day) return null;
+    if (!includeTime) return `${month}/${day}`;
+
+    const hour = part('hour');
+    const minute = part('minute');
+    return hour && minute ? `${month}/${day} ${hour}:${minute}` : `${month}/${day}`;
+  }
+
+  function syncBriefingSnapshotMeta() {
+    if (typeof document === 'undefined') return;
+    const target = document.getElementById('stat-snap');
+    if (!target) return;
+
+    let generatedAt = null;
+    try {
+      generatedAt = window.BRIEFING_GENERATED?.load?.().generatedAt || null;
+    } catch {
+      generatedAt = null;
+    }
+
+    const snapshotAt = window.BRIEFING_DATA?.snapshotAt || null;
+    const label = generatedAt
+      ? formatBriefingTimestamp(generatedAt, true)
+      : formatBriefingTimestamp(snapshotAt, false);
+
+    if (label) {
+      target.textContent = label;
+      target.title = generatedAt
+        ? `마지막 카드 생성: ${generatedAt}`
+        : `기준 스냅샷: ${snapshotAt}`;
+    }
+  }
+
   installRound2UiFeedback();
+
+  // app.js still initializes its legacy prototype label on DOMContentLoaded.
+  // Run one tick later so the canonical v0.5 snapshot metadata wins.
+  if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(syncBriefingSnapshotMeta, 0);
+    });
+  }
 
   if (typeof window === 'undefined' || typeof Storage === 'undefined' || !window.localStorage) return;
 

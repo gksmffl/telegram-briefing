@@ -1,0 +1,57 @@
+name: Bootstrap 2026-08-31 briefing snapshot
+
+on:
+  push:
+    branches:
+      - agent/v0.5-round2-feedback
+    paths:
+      - .github/workflows/bootstrap-2026-08-31-snapshot.yml
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/v0.5-round2-feedback
+
+      - name: Fetch live Telegram + Gemini briefing
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data
+          curl --fail-with-body --retry 2 --retry-delay 2 \
+            --request POST \
+            --header 'content-type: application/json' \
+            --data '{"cursors":{},"existingItems":[]}' \
+            'https://telegram-briefing.vercel.app/api/refresh' \
+            --output data/briefing-snapshot-2026-08-31.json
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = 'data/briefing-snapshot-2026-08-31.json';
+          const payload = JSON.parse(fs.readFileSync(path, 'utf8'));
+          if (!payload.ok) throw new Error(payload.error || 'snapshot request failed');
+          if (!payload.processed) throw new Error(payload.reason || 'snapshot was not processed');
+          if (!payload.llmConfigured) throw new Error('Gemini is not configured in production');
+          if (!Array.isArray(payload.items) || payload.items.length === 0) {
+            throw new Error('No generated briefing items were returned');
+          }
+          payload.snapshotAt = '2026-08-31';
+          fs.writeFileSync(path, JSON.stringify(payload, null, 2) + '\n');
+          console.log(`Generated ${payload.items.length} issues from ${Object.keys(payload.sources || {}).length} source messages.`);
+          NODE
+
+      - name: Commit snapshot to v0.5 branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- data/briefing-snapshot-2026-08-31.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Add 2026-08-31 live briefing snapshot'
+          git push origin HEAD:agent/v0.5-round2-feedback

@@ -1,0 +1,214 @@
+/* Mobile-only globe refinements based on real-device layout.
+ * Keep desktop unchanged. This file is loaded after the main stylesheet and
+ * uses higher-specificity selectors to override older narrow-screen rules.
+ */
+
+@media (max-width: 700px) {
+  html,
+  body,
+  #stage {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Compact the header: no orphan brand dot on phones. */
+  html body #stage > .top {
+    padding: 10px 10px 8px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  html body #stage > .top .brand,
+  html body #stage > .top .stats {
+    display: none !important;
+  }
+
+  html body #stage > .top .tools {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-end;
+    gap: 7px;
+  }
+
+  html body #stage > .top .seg {
+    min-width: 0;
+  }
+
+  html body #stage > .top .seg-btn {
+    padding: 7px 12px !important;
+    font-size: 11.5px;
+  }
+
+  /* Region selector becomes one compact horizontal strip instead of a
+     two-row floating panel. */
+  html body #stage > .regions {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 7px !important;
+    border-radius: 14px !important;
+    z-index: 24 !important;
+  }
+
+  html body #stage > .regions .regions-kicker {
+    display: none !important;
+  }
+
+  html body #stage > .regions .regions-list {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 5px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html body #stage > .regions .regions-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  html body #stage > .regions .rg {
+    flex: 0 0 auto !important;
+    min-width: 76px !important;
+    padding: 8px 10px !important;
+    justify-content: center;
+    gap: 7px !important;
+    border-left: none !important;
+    border-bottom: 2px solid transparent;
+  }
+
+  html body #stage > .regions .rg.is-front {
+    border-left-color: transparent !important;
+    border-bottom-color: rgba(143, 220, 255, .7);
+  }
+
+  html body #stage > .regions .rg.is-on {
+    border-left-color: transparent !important;
+    border-bottom-color: var(--gold);
+  }
+
+  html body #stage > .regions .rg-en {
+    display: none !important;
+  }
+
+  /* Never let the region selector cover an open region sheet. */
+  html body #stage:has(#pop:not([hidden])) > .regions {
+    display: none !important;
+  }
+
+  /* Mobile region content is a true bottom sheet. The sheet itself stays
+     bounded; only its content scrolls. */
+  html body #stage #pop.pop {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: min(54dvh, 640px) !important;
+    border-radius: 22px 22px 0 0 !important;
+    z-index: 35 !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  html body #stage #pop .pop-head {
+    flex: 0 0 auto;
+    padding: 16px 18px 13px !important;
+  }
+
+  html body #stage #pop .pop-title {
+    font-size: 20px !important;
+  }
+
+  html body #stage #pop .pop-body {
+    min-height: 0 !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  html body #stage #pop .cats {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    padding: 9px 12px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--line) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none;
+  }
+
+  html body #stage #pop .cats::-webkit-scrollbar {
+    display: none;
+  }
+
+  html body #stage #pop .cat {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 98px;
+    margin: 0 !important;
+    padding: 10px 11px !important;
+  }
+
+  html body #stage #pop .heads {
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    padding: 10px 12px calc(14px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html body #stage #pop .head {
+    padding: 14px !important;
+  }
+
+  html body #stage #pop .head-title {
+    font-size: 14px !important;
+  }
+
+  /* Keep the globe visually readable behind the sheet. */
+  html body #stage:has(#pop:not([hidden])) #globe-wrap {
+    transform: translateY(-5vh) scale(.92);
+    transform-origin: 50% 45%;
+    transition: transform .24s ease;
+  }
+
+  html body #stage:not(:has(#pop:not([hidden]))) #globe-wrap {
+    transform: none;
+    transition: transform .24s ease;
+  }
+
+  html body #stage #globe-hint {
+    bottom: 74px !important;
+  }
+
+  /* Detail view also respects the phone viewport and safe area. */
+  html body #detail.detail {
+    padding: 54px 10px calc(10px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html body #detail .dt {
+    width: 100%;
+    max-height: calc(100dvh - 64px);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 380px) {
+  html body #stage > .top .seg-btn {
+    padding: 7px 9px !important;
+  }
+
+  html body #stage > .regions .rg {
+    min-width: 70px !important;
+    padding-inline: 8px !important;
+  }
+
+  html body #stage #pop.pop {
+    max-height: 57dvh !important;
+  }
+}

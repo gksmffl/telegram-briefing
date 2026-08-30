@@ -1,6 +1,8 @@
 (() => {
   'use strict';
-  const STORE = 'briefing:generated:v1';
+  // v0.5 starts from the 2026-08-31 canonical snapshot. Do not merge legacy v1
+  // browser-generated items that were created on top of the 2026-08-13 prototype.
+  const STORE = 'briefing:generated:v2';
 
   function load() {
     try {

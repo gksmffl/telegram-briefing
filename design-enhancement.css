@@ -132,6 +132,48 @@
   .pin-en { font-size: 8px; }
   .regions { padding: 11px 11px 7px; }
   .rg { min-width: 140px; padding: 8px 9px; }
+
+  /*
+   * Mobile browsers expose a dynamic visual viewport: 100vh can extend behind
+   * the browser chrome/home indicator. Keep the issue sheet inside the actual
+   * visible viewport and give its scroll area enough bottom breathing room.
+   */
+  .stage {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+
+  .pop {
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    max-height: min(62dvh, calc(100dvh - 96px - env(safe-area-inset-bottom, 0px)));
+  }
+
+  .pop-head {
+    flex: 0 0 auto;
+  }
+
+  .pop-body {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .cats {
+    flex: 0 0 auto;
+  }
+
+  .heads {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .head:last-child {
+    margin-bottom: 0;
+  }
 }
 
 @media (max-width: 560px) {
@@ -149,4 +191,19 @@
   .pin-name { font-size: 13.5px; }
   .pin-en { display: none; }
   .pin-count { font-size: 10px; }
+
+  .pop {
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    max-height: min(66dvh, calc(100dvh - 82px - env(safe-area-inset-bottom, 0px)));
+  }
+
+  .pop-head {
+    padding-top: 17px;
+    padding-bottom: 13px;
+  }
+
+  .heads {
+    padding-top: 12px;
+    padding-bottom: calc(34px + env(safe-area-inset-bottom, 0px));
+  }
 }

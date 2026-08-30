@@ -81,173 +81,11 @@ function saveMode(mode) {
  * 수집한 원문 메시지. 정리된 내용이 어디서 왔는지 대조할 수 있게 그대로 보관한다.
  * t.me/s/ 웹 프리뷰로 수집했고, 요약·윤문하지 않는다.
  */
-const SOURCES = {
-  'yieldnspread/6451': {
-    ch: 'yieldnspread', id: 6451, at: '8/12 21:55',
-    text: `- 7월 CPI: +3.4% YoY / +0.1% MoM
-
-- 근원 CPI: +2.5% YoY / +0.2% MoM
-
-- CPI와 근원 CPI의 YoY 상승률 모두 5월 4.2%·2.9% → 6월 3.5%·2.6% → 7월 3.4%·2.5%로 2개월 연속 둔화했으며, 7월 수치는 모두 시장 예상치에 부합
-
-- CPI는 6월 -0.4%에서 7월 +0.1%로 반등했지만 에너지 -1.5%, 휘발유 -2.9%가 상승 폭을 제한한 결과. 다만 에너지와 휘발유의 YoY 상승률은 각각 +14.7%, +24.6%로 여전히 높은 수준
-
-- 근원 CPI는 6월 0.0%에서 +0.2%로 반등. 주거비는 +0.1%에 그쳤지만 임대료와 자가주거비가 각각 +0.3%, 의료비 +0.4%, 항공료 +2.2%를 기록해 서비스물가의 잔존 압력 확인`,
-  },
-
-  'deandatbond/1830': {
-    ch: 'deandatbond', id: 1830, at: '8/13 07:58',
-    text: `8/13 채권시장 동향
-
-- 7월 CPI가 양호하게 발표되면서 선물시장에서의 금리 인상 확률 소폭 하락. 미국채 금리는 단기 금리 소폭 하락하며 커브 스팁 마감
-
-- 선물시장에서 9월 인상 확률은 39%까지 하락. 12월 한 차례 인상 반영 중
-
-- CPI 예상치 부합. 기여도를 보면 에너지가 헤드라인을 11bp 끌어내린 반면 근원 서비스가 13bp 끌어올림
-
-- 10년 국채 입찰 수요는 소폭 부진. 낙찰금리 4.683%. 시장 기대(WI) 4.682%보다 1bp 높게 형성. 낙찰금리는 2007년 이후 최고치 기록`,
-  },
-
-  'hanwhastrategy/28940': {
-    ch: 'hanwhastrategy', id: 28940, at: '8/13 07:59',
-    text: `★ 주식 아침 시황 (8/13)
-- 다우지수 53,770.27pt -0.04%
-  S&P500지수 7,748.50pt +0.26%
-  나스닥지수 26,558.49pt +0.54%
-- 뉴욕 증시는 7월 물가지표 발표 영향과 기술주 반등에 혼조 마감. 미국 7월 CPI는 전년대비 3.4% 오르며 시장 전망치에 부합. 이에 연준 금리 인상 우려 완화. 다만, 미국과 이란의 호르무즈 해협 관련 협상은 교착 상태 지속. 코어위브 등 AI 인프라 기업들의 호실적 발표에 견조한 AI 수요 재확인되며 마이크론(+4.92%), 엔비디아(+3.03%) 등 반도체 업종 전반 강세`,
-  },
-
-  'redbirdstock/8759': {
-    ch: 'redbirdstock', id: 8759, at: '8/13 06:58',
-    truncated: true,
-    text: `제품 증설과정에서 약해진 FCF제외하고 전반적으로 양호한 실적이네요
-컨콜이 중요할 것 같네요
-
-----
-
-[Coherent FY4Q26 실적]
-
-*4Q FY26 실적
--매출 20.46억달러, 전년 대비 +42% pro forma, 전분기 대비 +13.3%
--FactSet 컨센서스 19.8억달러 대비 약 3.3% 상회
--Non-GAAP 매출총이익률 40.2%, 전년 38.1% 대비 +215bp
--Non-GAAP 영업이익 4.46억달러, 전분기 3.66억달러 대비 +21.9%
--Non-GAAP 영업이익률 21.8%, 전년 18.0% 대비 +380bp
--Non-GAAP EPS 1.74달러, 전년 1.00달러 대비 +74%, 전분기 1.41달러 대비 +23%
--FactSet 컨센서스 1.62달러 대비 약 7.4% 상회
-
-*사업부별 매출
--Datacenter & Communications 매출 16.15억달러, 전년 대비 +58.6%
--전체 매출의 약 79%를 Datacenter & Communications가 차지
--Industrial 매출 4.31억달러, 전년 대비 -15.8%
-
-*FY27 1Q 가이던스
--매출 22억~24억달러
--중간값 23억달러, FactSet 컨센서스 21.3억달러 대비 약 8.0% 상회
--Non-GAAP EPS 1.85~2.05달러`,
-  },
-
-  'redbirdstock/8758': {
-    ch: 'redbirdstock', id: 8758, at: '8/12 12:56',
-    text: `>>NVIDIA, Zhongji Innolight·Eoptolink 투자설…회사들 긴급 부인·확인 거부
-
-•최근 시장에서 NVIDIA가 광모듈 업체 Zhongji Innolight에 20억 달러를 전략적으로 투자하고, Eoptolink의 홍콩 IPO에도 앵커 투자자로 참여할 것이라는 소문이 확산
-
-•NVIDIA의 Zhongji Innolight 투자는 차세대 광모듈 연구개발과 글로벌 생산능력 확대, 태국 신공장 건설 등에 활용될 것이라는 내용
-
-•다만 8월 12일 Zhongji Innolight 측은 해당 시장 소문에 대해 "알지 못하며 회사의 관련 공시를 기준으로 해달라"고 답변. Eoptolink 역시 해당 소문에 대해 논평하기 어렵다며 H주 관련 사항은 공시를 기준으로 확인해달라고 밝힘 현재로서는 NVIDIA의 투자설을 뒷받침하는 공식 확인은 없는 상태`,
-  },
-};
+const SOURCES = window.BRIEFING_DATA.sources;
 
 /* --- 3. 카드 데이터 ----------------------------------------- */
 
-const CARDS = [
-  {
-    tag: '시장 전반 · 물가',
-    short: '미국 7월 CPI 발표',
-    title: '미국 7월 물가가 시장 예상과 같게 나왔어요',
-    metric: { value: '+3.4%', dir: 'flat', sub: '7월 CPI, 전년 대비 · 예상치 부합' },
-    facts: [
-      '7월 CPI는 전년 대비 <b>+3.4%</b>, 전월 대비 +0.1%. 근원 CPI는 +2.5% / +0.2%로 <b>모두 시장 예상치에 부합</b>했어요.',
-      'CPI와 근원 CPI의 전년 대비 상승률은 5월 4.2%·2.9% → 6월 3.5%·2.6% → 7월 3.4%·2.5%로 <b>2개월 연속 둔화</b>했어요.',
-      '선물시장의 <b>9월 금리 인상 확률은 39%까지 하락</b>했어요. 12월 한 차례 인상이 반영돼 있어요.',
-      '뉴욕 증시는 혼조 마감했어요. 나스닥 +0.54%, S&P500 +0.26%, 다우 −0.04%.',
-    ],
-    sources: ['yieldnspread/6451', 'deandatbond/1830', 'hanwhastrategy/28940'],
-    terms: [
-      { id: 'core-cpi', name: '근원 CPI', full: '근원 CPI (Core CPI)',
-        desc: '전체 물가에서 식품과 에너지를 뺀 지표예요. 이 둘은 날씨나 유가에 따라 심하게 출렁여서, 빼고 봐야 물가의 흐름이 보인다고 봐요.' },
-      { id: 'yoy-mom', name: '전년 대비 / 전월 대비', full: '전년 대비 / 전월 대비 (YoY / MoM)',
-        desc: '전년 대비는 1년 전 같은 달과 비교한 값, 전월 대비는 바로 앞 달과 비교한 값이에요. 같은 지표라도 어느 쪽으로 보느냐에 따라 방향이 달라 보일 수 있어요.' },
-      { id: 'rate-prob', name: '금리 인상 확률', full: '선물시장 금리 인상 확률',
-        desc: '금리 관련 선물 가격을 거꾸로 계산해 뽑아낸 숫자예요. 중앙은행이 발표한 게 아니라, 시장 참가자들이 돈을 걸고 있는 예상이에요.' },
-    ],
-    notes: [
-      '물가 지표가 나오는 날 채권과 주식이 함께 크게 움직이는 이유는, 물가가 중앙은행 금리 결정의 주요 입력값이기 때문이에요.',
-      '시장은 숫자 자체보다 <b>예상치와의 차이</b>를 봐요. 같은 3.4%라도 예상이 3.2%였는지 3.6%였는지에 따라 반응이 달라져요.',
-      '미국 CPI는 매달 중순에 발표돼요.',
-    ],
-    opinion: '예상치에 부합했다는 건, 시장이 이미 이 정도를 반영해두고 있었다는 뜻이에요. 그래서 지수가 크게 움직이지 않았어요. 다만 헤드라인 3.4%만 보면 놓치는 게 있어요 — 원문을 보면 에너지·휘발유의 전년 대비 상승률이 각각 +14.7%, +24.6%로 여전히 높고, 서비스물가(임대료·의료비·항공료)도 오르고 있다고 적혀 있어요. 두 힘이 서로 상쇄된 결과가 "예상 부합"입니다. 어느 쪽이 더 오래 갈지는 이 원문만으로 알 수 없어요.',
-  },
-
-  {
-    tag: '내 종목 · 실적',
-    short: 'Coherent 실적발표',
-    title: 'Coherent 4분기 실적이 시장 예상을 넘었어요',
-    metric: { value: '+42%', dir: 'up', sub: '4분기 매출, 전년 대비 · 20.46억달러' },
-    facts: [
-      '4분기 매출 <b>20.46억달러</b>(약 28,992억원). 전년 대비 +42%로, 컨센서스 19.8억달러를 <b>3.3% 넘었어요</b>.',
-      'Non-GAAP EPS는 1.74달러. 컨센서스 1.62달러를 7.4% 넘었어요.',
-      '데이터센터·통신 부문이 16.15억달러로 <b>전체 매출의 79%</b>를 차지했어요. 산업 부문은 전년 대비 −15.8%였어요.',
-      '다음 분기 가이던스는 매출 22억~24억달러. 중간값 23억달러로 컨센서스 21.3억달러를 약 8.0% 넘었어요.',
-      '채널은 “증설 과정에서 약해진 FCF를 빼면 전반적으로 양호한 실적”이라고 평했어요.',
-    ],
-    sources: ['redbirdstock/8759'],
-    note: '20.46억달러 × 1,417원/달러 = 28,992억원 (환율은 8/13 채널 보도치)',
-    terms: [
-      { id: 'non-gaap', name: 'Non-GAAP', full: 'Non-GAAP',
-        desc: '정해진 회계기준(GAAP)에서 일회성 비용 같은 항목을 빼고 회사가 다시 계산한 수치예요. 회사가 조정한 값이라 GAAP 수치와 다를 수 있어요.' },
-      { id: 'consensus', name: '컨센서스', full: '컨센서스 (consensus)',
-        desc: '여러 증권사 애널리스트가 낸 전망치의 평균이에요. “상회”는 실제 실적이 이 평균보다 높게 나왔다는 뜻이에요.' },
-      { id: 'guidance', name: '가이던스', full: '가이던스 (guidance)',
-        desc: '회사가 직접 제시하는 다음 분기 실적 전망이에요. 애널리스트가 아니라 회사가 내놓는 숫자라 시장이 특히 주의해서 봐요.' },
-      { id: 'fcf', name: 'FCF', full: 'FCF (잉여현금흐름)',
-        desc: '영업으로 벌어들인 현금에서 설비 투자에 쓴 돈을 뺀 금액이에요. 공장을 크게 늘리는 시기에는 줄어드는 경우가 많아요.' },
-    ],
-    notes: [
-      '실적 발표에서 시장이 보는 건 대체로 세 가지예요. 매출·이익이 컨센서스를 넘었는지, 다음 분기 가이던스가 컨센서스보다 높은지, 성장이 어느 사업부에서 나왔는지.',
-      'InP·CPO·실리콘 포토닉스는 광통신 부품에 쓰이는 기술 이름이에요.',
-      'CHIPS Act는 미국이 자국 내 반도체 생산시설 투자에 보조금을 주는 법이에요.',
-    ],
-    opinion: '숫자는 네 군데 모두 컨센서스를 넘겼는데, 원문을 올린 채널이 굳이 집어 언급한 건 FCF와 컨콜이에요. 실적이 좋은데도 "컨콜이 중요하다"고 쓴 건, 발표된 숫자보다 회사가 설명할 내용에 무게를 뒀다는 뜻으로 읽혀요. 매출의 79%가 데이터센터·통신 한 부문에서 나오고 산업 부문은 −15.8%라, 성장이 한쪽에 몰려 있다는 점도 원문에 그대로 적혀 있어요. 이게 강점인지 편중인지는 원문만으로 판단할 수 없어요.',
-  },
-
-  {
-    tag: '내 종목 · 확인되지 않은 소문',
-    short: '엔비디아 투자설?',
-    title: 'NVIDIA 투자설이 돌았지만 회사들이 확인해주지 않았어요',
-    metric: { value: '확인 안 됨', dir: 'none', sub: '공식 확인 없음 · 소문 단계' },
-    facts: [
-      'NVIDIA가 광모듈 업체 <b>Zhongji Innolight에 20억 달러를 투자</b>하고, Eoptolink의 홍콩 IPO에 앵커 투자자로 참여한다는 소문이 시장에 돌았어요.',
-      '8월 12일 Zhongji Innolight는 <b>“알지 못하며 회사의 공시를 기준으로 해달라”</b>고 답했어요.',
-      'Eoptolink도 <b>논평하기 어렵다</b>며 공시를 기준으로 확인해달라고 밝혔어요.',
-      '현재까지 이 투자설을 뒷받침하는 <b>공식 확인은 없어요</b>.',
-    ],
-    sources: ['redbirdstock/8758'],
-    terms: [
-      { id: 'anchor', name: '앵커 투자자', full: '앵커 투자자 (anchor investor)',
-        desc: '기업공개(IPO) 때 일반 청약 전에 대량 물량을 미리 배정받기로 약속한 큰 투자자예요. 이름값이 있는 곳이 들어오면 흥행 신호로 읽히곤 해요.' },
-      { id: 'disclosure', name: '공시', full: '공시',
-        desc: '상장사가 법에 따라 공식적으로 알리는 정보예요. 소문과 달리 내용에 법적 책임이 따라서, 회사들은 확인되지 않은 이야기에 “공시를 기준으로 해달라”고 답하는 경우가 많아요.' },
-    ],
-    notes: [
-      '회사가 “알지 못한다”고 답하는 것은 부인과 다를 수 있어요. 사실이 아니라는 뜻일 수도 있고, 지금은 확인해줄 수 없다는 뜻일 수도 있어요.',
-      '큰 기업의 투자설은 관련 부품사 주가를 먼저 움직이는 경우가 있어서, 확인 전에 소문만으로 퍼지기 쉬워요.',
-      '홍콩 IPO에서 앵커 투자자 명단은 공모 절차 중 공개돼요.',
-    ],
-    opinion: '이 건의 핵심은 "아직 아무것도 확정되지 않았다"예요. 회사가 "알지 못한다"고 답한 것과 "사실이 아니다"라고 부인한 것은 다른데, 이번은 전자예요. 그래서 지금 확실한 사실은 두 가지뿐입니다 — 소문이 돌았다, 그리고 두 회사가 확인을 거부했다. 20억 달러라는 숫자도 소문 안에 있는 값이고 어디서도 확인되지 않았어요. 공시가 나오기 전까지는 소문 단계로 두는 게 맞아 보여요.',
-  },
-];
+const CARDS = window.BRIEFING_DATA.cards;
 
 /* --- 4. 지도 데이터 ----------------------------------------- */
 
@@ -309,6 +147,8 @@ function el(tag, className, text) {
   if (text !== undefined) node.textContent = text;
   return node;
 }
+
+const renderRichText = window.BRIEFING_SAFE_RENDER.renderRichText;
 
 /** 모든 카드의 용어를 한 곳에 모은다 (id → {term, card}) */
 const TERM_INDEX = (() => {
@@ -436,7 +276,7 @@ function renderGraph() {
       const ul = el('ul', 'nd-facts');
       card.facts.forEach((text) => {
         const li = el('li');
-        li.innerHTML = text;     // 강조 태그만 든 고정 문자열
+        renderRichText(li, text);
         ul.appendChild(li);
       });
       if (card.note) {
@@ -635,7 +475,11 @@ function drawLinks() {
     d += 'M' + x1 + ' ' + p.y + ' C ' + mx + ' ' + p.y + ', ' + mx + ' ' + n.y + ', ' + x2 + ' ' + n.y + ' ';
   });
 
-  svg.innerHTML = '<path class="link" d="' + d + '" />';
+  svg.replaceChildren();
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('class', 'link');
+  path.setAttribute('d', d);
+  svg.appendChild(path);
 }
 
 function startDrift() {
@@ -692,7 +536,7 @@ function openPop(node) {
     const ul = el('ul', 'pop-list');
     card.notes.forEach((text) => {
       const li = el('li');
-      li.innerHTML = text;
+      renderRichText(li, text);
       ul.appendChild(li);
     });
     body.appendChild(ul);
@@ -744,7 +588,7 @@ function openPanel(cardIndex) {
   const facts = frag.querySelector('.pn-facts');
   card.facts.forEach((text) => {
     const li = el('li');
-    li.innerHTML = text;
+    renderRichText(li, text);
     facts.appendChild(li);
   });
   if (card.note) {
@@ -774,7 +618,7 @@ function openPanel(cardIndex) {
   const notes = frag.querySelector('.pn-notes');
   card.notes.forEach((text) => {
     const li = el('li');
-    li.innerHTML = text;
+    renderRichText(li, text);
     notes.appendChild(li);
   });
 
@@ -806,7 +650,7 @@ function renderCard() {
   const facts = frag.querySelector('.facts');
   card.facts.forEach((text) => {
     const li = el('li');
-    li.innerHTML = text;
+    renderRichText(li, text);
     facts.appendChild(li);
   });
   if (card.note) {
@@ -834,7 +678,7 @@ function renderCard() {
   const notes = frag.querySelector('.notes');
   card.notes.forEach((text) => {
     const li = el('li');
-    li.innerHTML = text;
+    renderRichText(li, text);
     notes.appendChild(li);
   });
 

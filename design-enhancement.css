@@ -194,7 +194,7 @@
 
   .pop {
     bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-    max-height: min(66dvh, calc(100dvh - 82px - env(safe-area-inset-bottom, 0px)));
+    max-height: min(80dvh, calc(100dvh - 82px - env(safe-area-inset-bottom, 0px)));
   }
 
   .pop-head {

@@ -1,5 +1,6 @@
 {
   "name": "personalized-telegram-briefing",
+  "version": "0.5.0",
   "private": true,
   "scripts": {
     "test": "node --test tests/*.test.js",

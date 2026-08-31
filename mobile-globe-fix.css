@@ -1,0 +1,236 @@
+/* Mobile globe fixes for the production v0.5 branch.
+ * Keep the globe readable, collapse the region selector to one row,
+ * and use a compact bottom sheet for region issues.
+ */
+
+@media (max-width: 700px) {
+  html, body,
+  .stage {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .stage {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+
+  /* Compact one-line region selector. */
+  #stage .regions {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 7px 8px !important;
+    border-radius: 14px !important;
+    overflow: hidden;
+    z-index: 28;
+  }
+
+  #stage .regions-kicker {
+    display: none !important;
+  }
+
+  #stage .regions-list {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 5px !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0;
+  }
+
+  #stage .regions-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  #stage .rg {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    width: auto !important;
+    padding: 8px 11px !important;
+    gap: 6px !important;
+    border-left: 0 !important;
+    border-bottom: 2px solid transparent;
+    border-radius: 10px !important;
+  }
+
+  #stage .rg.is-front {
+    border-bottom-color: rgba(143, 220, 255, .7) !important;
+  }
+
+  #stage .rg.is-on {
+    border-bottom-color: var(--gold) !important;
+  }
+
+  #stage .rg-en {
+    display: none !important;
+  }
+
+  #stage .rg-name {
+    font-size: 12.5px !important;
+    white-space: nowrap;
+  }
+
+  #stage .rg-count {
+    margin-left: 2px !important;
+    font-size: 11px !important;
+  }
+
+  /* Once a region is open, the selector must not cover the issue sheet. */
+  #stage:has(#pop:not([hidden])) .regions,
+  #stage:has(#pop:not([hidden])) .globe-hint {
+    display: none !important;
+  }
+
+  /* Compact mobile bottom sheet. */
+  #stage #pop {
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+    max-height: min(52dvh, 440px) !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    z-index: 35 !important;
+  }
+
+  #stage #pop .pop-head {
+    flex: 0 0 auto;
+    padding: 15px 16px 12px !important;
+  }
+
+  #stage #pop .pop-title {
+    font-size: 20px !important;
+  }
+
+  #stage #pop .pop-body {
+    min-height: 0;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  #stage #pop .cats {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    padding: 9px 10px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--line) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  #stage #pop .cats::-webkit-scrollbar {
+    display: none;
+  }
+
+  #stage #pop .cat {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: max-content !important;
+    margin: 0 !important;
+    padding: 10px 11px !important;
+    white-space: nowrap;
+  }
+
+  #stage #pop .cat-main {
+    white-space: nowrap;
+  }
+
+  #stage #pop .heads {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 10px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #stage #pop .head {
+    min-height: 0 !important;
+    padding: 13px 13px !important;
+  }
+
+  #stage #pop .head-title {
+    font-size: 14px !important;
+    line-height: 1.45 !important;
+  }
+
+  #stage #pop .head-value {
+    font-size: 21px !important;
+  }
+
+  /* Keep the top controls inside narrow Samsung/Chrome viewports. */
+  #stage .top {
+    flex-wrap: nowrap !important;
+    padding: 10px 10px 8px !important;
+    gap: 6px !important;
+  }
+
+  #stage .top .brand {
+    display: none !important;
+  }
+
+  #stage .top .stats {
+    display: none !important;
+  }
+
+  #stage .top .tools {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  #stage .top .seg {
+    min-width: 0;
+  }
+
+  #stage .top .seg-btn {
+    padding: 7px 11px !important;
+  }
+
+  #stage .top .tool-btn {
+    flex: 0 0 auto;
+    padding: 8px 11px !important;
+  }
+
+  #stage .top .rf-label {
+    display: none !important;
+  }
+
+  #stage .globe-hint {
+    display: none !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #stage .top .seg {
+    flex: 1 1 auto;
+  }
+
+  #stage .top .seg-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 7px 7px !important;
+    text-align: center;
+  }
+
+  #stage #pop {
+    left: 6px !important;
+    right: 6px !important;
+    bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+    max-height: min(50dvh, 410px) !important;
+  }
+}

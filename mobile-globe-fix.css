@@ -16,7 +16,7 @@
     min-height: 100dvh;
   }
 
-  /* Compact one-line region selector. */
+  /* Compact, centered region selector with equal-width slots. */
   #stage .regions {
     left: 10px !important;
     right: 10px !important;
@@ -34,30 +34,28 @@
   }
 
   #stage .regions-list {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    gap: 5px !important;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: center;
+    justify-items: stretch;
+    gap: 6px !important;
+    width: 100%;
+    overflow: visible !important;
     padding: 0;
   }
 
-  #stage .regions-list::-webkit-scrollbar {
-    display: none;
-  }
-
   #stage .rg {
-    flex: 0 0 auto !important;
-    min-width: max-content !important;
-    width: auto !important;
-    padding: 8px 11px !important;
-    gap: 6px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 8px 4px !important;
+    gap: 4px !important;
     border-left: 0 !important;
     border-bottom: 2px solid transparent;
     border-radius: 10px !important;
+    text-align: center;
   }
 
   #stage .rg.is-front {
@@ -78,8 +76,9 @@
   }
 
   #stage .rg-count {
-    margin-left: 2px !important;
+    margin-left: 0 !important;
     font-size: 11px !important;
+    white-space: nowrap;
   }
 
   /* Once a region is open, the selector must not cover the issue sheet. */
@@ -225,6 +224,30 @@
     min-width: 0;
     padding: 7px 7px !important;
     text-align: center;
+  }
+
+  #stage .regions {
+    left: 7px !important;
+    right: 7px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+
+  #stage .regions-list {
+    gap: 4px !important;
+  }
+
+  #stage .rg {
+    padding: 8px 2px !important;
+    gap: 3px !important;
+  }
+
+  #stage .rg-name {
+    font-size: 12px !important;
+  }
+
+  #stage .rg-count {
+    font-size: 10.5px !important;
   }
 
   #stage #pop {
